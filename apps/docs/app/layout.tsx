@@ -74,7 +74,7 @@ export const metadata = {
   alternates: {
     canonical: "/",
     types: {
-      "text/markdown": "/llms.txt",
+      "text/markdown": "/index.md",
     },
   },
   openGraph: {

@@ -116,7 +116,7 @@ export async function generateMetadata(props: { params: Promise<{ slug?: string[
     alternates: {
       canonical: page.url,
       types: {
-        "text/markdown": `/raw${page.url}`,
+        "text/markdown": `${page.url}.md`,
       },
     },
     openGraph: {

@@ -67,3 +67,33 @@ jobs:
           sleep 15
           node ../../packages/cli/dist/cli.js verify http://localhost:3000/posts/hello
           kill $NEXT_PID
+
+  dualmark-docs-dogfood:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm turbo run build --filter='@dualmark/*'
+      - name: Build dualmark-docs (the website itself)
+        run: pnpm --filter dualmark-docs build
+      - name: Start dualmark-docs and verify against the AEO Spec
+        working-directory: apps/docs
+        run: |
+          ./node_modules/.bin/next start --port 4000 &
+          DOCS_PID=$!
+          sleep 8
+          THRESHOLD=115
+          fail=0
+          for path in / /docs /docs/quickstart /docs/spec/headers /play; do
+            echo "::group::verify ${path}"
+            score=$(node ../../packages/cli/dist/cli.js verify "http://localhost:4000${path}" --json | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{const r=JSON.parse(d);console.log(r.score)})')
+            echo "score=${score}"
+            if [ "${score}" -lt "${THRESHOLD}" ]; then
+              echo "::error::${path} scored ${score}/125 (below threshold ${THRESHOLD})"
+              fail=1
+            fi
+            echo "::endgroup::"
+          done
+          kill $DOCS_PID
+          exit $fail
