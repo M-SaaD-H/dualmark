@@ -1,6 +1,19 @@
+import { AstroLogo, CloudflareLogo, NextLogo } from "@/components/brand-logos";
+import type { ComponentType, SVGProps } from "react";
 import { Section, SectionHeader } from "./section";
 
-const adapters = [
+interface Adapter {
+  name: string;
+  pkg: string;
+  desc: string;
+  install: string;
+  score: string;
+  status: string;
+  accent: string;
+  Logo: ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
+}
+
+const adapters: Adapter[] = [
   {
     name: "Astro",
     pkg: "@dualmark/astro",
@@ -9,7 +22,7 @@ const adapters = [
     score: "80/80",
     status: "Stable",
     accent: "oklch(0.78 0.16 30)",
-    glyph: "▲",
+    Logo: AstroLogo,
   },
   {
     name: "Next.js",
@@ -19,7 +32,7 @@ const adapters = [
     score: "120/125",
     status: "Stable",
     accent: "oklch(0.985 0 0)",
-    glyph: "N",
+    Logo: NextLogo,
   },
   {
     name: "Cloudflare",
@@ -29,7 +42,7 @@ const adapters = [
     score: "125/125",
     status: "Stable",
     accent: "oklch(0.82 0.16 70)",
-    glyph: "☁",
+    Logo: CloudflareLogo,
   },
 ];
 
@@ -60,11 +73,8 @@ export function Adapters() {
 
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className="flex size-10 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elev-2)] font-mono text-lg font-bold"
-                  style={{ color: a.accent }}
-                >
-                  {a.glyph}
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elev-2)] text-[var(--color-fg)]">
+                  <a.Logo size={22} />
                 </div>
                 <div>
                   <div className="text-lg font-semibold text-[var(--color-fg)]">
