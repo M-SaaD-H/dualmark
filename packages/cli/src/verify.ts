@@ -1,3 +1,5 @@
+import { toMarkdownUrl } from "@dualmark/core";
+
 export type CheckSeverity = "required" | "recommended";
 
 export interface CheckResult {
@@ -29,17 +31,6 @@ export interface VerifyOptions {
 
 const DEFAULT_TIMEOUT = 10_000;
 const DEFAULT_UA = "Dualmark-Conformance/0.1 (+https://dualmark.dev)";
-
-function toMarkdownUrl(input: string): string {
-  const u = new URL(input);
-  if (u.pathname.endsWith(".md")) return u.toString();
-  if (u.pathname === "/" || u.pathname === "") {
-    u.pathname = "/index.md";
-  } else {
-    u.pathname = u.pathname.replace(/\/$/, "") + ".md";
-  }
-  return u.toString();
-}
 
 async function fetchWithTimeout(
   url: string,

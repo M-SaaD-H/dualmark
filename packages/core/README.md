@@ -12,12 +12,13 @@ pnpm add @dualmark/core
 
 ## What's in it
 
-- **Content negotiation** (`parseAcceptHeader`, `negotiateFormat`, `registerFormat`) — RFC 7231 §5.3.2 compliant
+- **Content negotiation** (`parseAcceptHeader`, `negotiateFormat`) — RFC 7231 §5.3.2 compliant
 - **AI bot detection** (`detectAIBot`, `AI_BOTS`) — registry of 19 known crawlers with vendor + purpose metadata
 - **Markdown response** (`markdownResponse`, `injectMarkdownAlternateLink`) — builds `Response` objects with all AEO headers
-- **Token estimation** (`estimateTokens`, `setTokenEstimator`) — pluggable; default is whitespace-split
+- **Path utilities** (`toMarkdownPath`, `toMarkdownUrl`) — convert HTML paths/URLs to their markdown twins
+- **Token estimation** (`estimateTokens`) — default is whitespace-split
 - **Text utilities** (`normalizeUnicode`, `cleanBody`, `slugToTitle`, `fmtDate`, `joinLines`) — for writing markdown converters
-- **Composition helpers** (`listingToMarkdown`, `renderRelatedLinks`, `renderFAQSection`, `renderPlatformFooter`)
+- **Composition helpers** (`listingToMarkdown`, `renderRelatedLinks`, `renderFAQSection`)
 - **llms.txt rendering** (`renderLlmsTxt`)
 
 ## Quick example

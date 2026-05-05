@@ -2,21 +2,14 @@ export {
   parseAcceptHeader,
   mediaTypeMatches,
   negotiateFormat,
-  registerFormat,
-  getRegisteredFormats,
   type ParsedMediaType,
 } from "./negotiation.js";
 
-export {
-  estimateTokens,
-  setTokenEstimator,
-  resetTokenEstimator,
-} from "./tokens.js";
+export { estimateTokens } from "./tokens.js";
 
 export {
   normalizeUnicode,
   cleanBody,
-  stripImages,
   slugToTitle,
   fmtDate,
   joinLines,
@@ -26,9 +19,10 @@ export {
 export {
   markdownResponse,
   injectMarkdownAlternateLink,
-  renderLinkAlternateHeader,
   type MarkdownResponseOptions,
 } from "./markdown.js";
+
+export { toMarkdownPath, toMarkdownUrl } from "./paths.js";
 
 export {
   AI_BOTS,
@@ -42,7 +36,6 @@ export {
   listingToMarkdown,
   renderRelatedLinks,
   renderFAQSection,
-  renderPlatformFooter,
   type ListingItem,
   type ListingOptions,
   type RelatedLinks,
@@ -56,5 +49,11 @@ export {
   type LlmsTxtSection,
   type LlmsTxtOptions,
 } from "./llms-txt.js";
+
+export type {
+  TrailingSlashMode,
+  AIRequestInfo,
+  MissInfo,
+} from "./analytics.js";
 
 export const AEO_SPEC_VERSION = "1.0";

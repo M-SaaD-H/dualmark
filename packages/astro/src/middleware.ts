@@ -1,4 +1,4 @@
-import { injectMarkdownAlternateLink } from "@dualmark/core";
+import { injectMarkdownAlternateLink, toMarkdownPath } from "@dualmark/core";
 
 interface MiddlewareContext {
   url: URL;
@@ -15,9 +15,11 @@ export async function dualmarkOnRequest(
   const ct = response.headers.get("content-type") ?? "";
   if (!ct.toLowerCase().includes("text/html")) return response;
   if (context.url.pathname.endsWith(".md")) return response;
-  const trimmed = context.url.pathname.replace(/\/$/, "");
-  const mdPath = trimmed === "" ? "/index.md" : trimmed + ".md";
-  return injectMarkdownAlternateLink(response, context.url.pathname, mdPath);
+  return injectMarkdownAlternateLink(
+    response,
+    context.url.pathname,
+    toMarkdownPath(context.url.pathname),
+  );
 }
 
 export const onRequest = dualmarkOnRequest;

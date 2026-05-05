@@ -1,4 +1,9 @@
-import { detectAIBot, estimateTokens, negotiateFormat } from "@dualmark/core";
+import {
+  detectAIBot,
+  estimateTokens,
+  negotiateFormat,
+  toMarkdownPath,
+} from "@dualmark/core";
 import type {
   AIRequestInfo,
   AnalyticsEngineDataset,
@@ -36,12 +41,6 @@ function shouldSkip(
 ): boolean {
   if (extensions.some((ext) => pathname.endsWith(ext))) return true;
   return prefixes.some((p) => pathname.startsWith(p));
-}
-
-function toMarkdownPath(pathname: string): string {
-  const clean = pathname.replace(/\/$/, "");
-  if (clean === "") return "/index.md";
-  return clean + ".md";
 }
 
 function normalizePath(pathname: string): string {

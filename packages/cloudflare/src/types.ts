@@ -30,24 +30,13 @@ export interface UpstreamWorker<Env = MinimalEnv> {
   ) => Promise<Response> | Response;
 }
 
-export interface AIRequestInfo {
-  url: URL;
-  botName: string | null;
-  botVendor: string | null;
-  acceptHeader: string;
-  pathname: string;
-  cacheStatus: "hit" | "miss";
-  tokens: number;
-}
+export type {
+  AIRequestInfo,
+  MissInfo,
+  TrailingSlashMode,
+} from "@dualmark/core";
 
-export interface MissInfo {
-  url: URL;
-  botName: string | null;
-  pathname: string;
-  acceptHeader: string;
-}
-
-export type TrailingSlashMode = "never" | "always" | "preserve";
+import type { AIRequestInfo, MissInfo, TrailingSlashMode } from "@dualmark/core";
 
 export interface CreateAEOWorkerOptions<Env extends MinimalEnv = MinimalEnv> {
   upstream: UpstreamWorker<Env>;
