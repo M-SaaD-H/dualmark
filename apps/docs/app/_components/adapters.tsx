@@ -1,6 +1,22 @@
 import { AstroLogo, CloudflareLogo, NextLogo } from "@/components/brand-logos";
+import Link from "next/link";
 import type { ComponentType, SVGProps } from "react";
 import { Section, SectionHeader } from "./section";
+
+const CONVERTERS = [
+  "blog",
+  "case-study",
+  "changelog",
+  "compare",
+  "docs",
+  "feature",
+  "glossary",
+  "legal",
+  "pricing",
+  "pseo",
+  "tool",
+  "video",
+];
 
 interface Adapter {
   name: string;
@@ -107,6 +123,29 @@ export function Adapters() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-10 flex flex-col items-center gap-3 text-center">
+        <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-fg-subtle)]">
+          + 12 page-type converters
+        </span>
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          {CONVERTERS.map((name) => (
+            <span
+              key={name}
+              className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elev-1)] px-2.5 py-1 font-mono text-xs text-[var(--color-fg-muted)]"
+            >
+              {name}
+            </span>
+          ))}
+        </div>
+        <Link
+          href="/docs/packages/converters"
+          className="mt-1 inline-flex items-center gap-1.5 text-sm text-[var(--color-fg-muted)] underline-offset-4 hover:text-[var(--color-accent)] hover:underline"
+        >
+          See how converters work
+          <span aria-hidden>→</span>
+        </Link>
       </div>
     </Section>
   );

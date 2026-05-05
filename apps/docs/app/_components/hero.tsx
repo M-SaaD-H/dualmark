@@ -4,9 +4,14 @@ import { InstallCommandClient } from "./install-command";
 
 export function Hero() {
   return (
-    <section className="relative isolate overflow-hidden border-b border-[var(--color-border)]">
-      <BeamsBackground />
-      <div className="absolute inset-0 -z-10 bg-grid mask-radial-fade opacity-30" />
+    <section className="relative isolate border-b border-[var(--color-border)]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 mx-auto w-full max-w-7xl overflow-hidden"
+      >
+        <BeamsBackground />
+        <div className="absolute inset-0 bg-grid mask-radial-fade opacity-30" />
+      </div>
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-6 pb-24 pt-16 md:px-8 md:pb-32 md:pt-24">
         <Link
@@ -21,16 +26,17 @@ export function Hero() {
         </Link>
 
         <h1 className="max-w-4xl text-balance text-center text-5xl font-semibold tracking-tight text-[var(--color-fg)] md:text-7xl">
-          ChatGPT cites{" "}
+          The{" "}
           <span className="bg-gradient-to-r from-[#e8ffa8] via-[#c6fe1e] to-[#9ee847] bg-clip-text text-transparent">
-            your competitor.
-          </span>
+            AEO infrastructure
+          </span>{" "}
+          your marketing site is missing.
         </h1>
 
         <p className="mt-6 max-w-2xl text-pretty text-center text-lg text-[var(--color-fg-muted)] md:text-xl">
-          Not a content problem — an infrastructure problem. Dualmark gives every
-          page a markdown twin AI agents can actually read. Same URL. Same SEO.
-          One config.
+          Your blog ranks #1 on Google. ChatGPT cites your competitor. Not a
+          content problem — an infrastructure problem. Dualmark gives every
+          page a markdown twin AI agents can actually read.
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">

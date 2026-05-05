@@ -1,22 +1,22 @@
 import { Adapters } from "./_components/adapters";
-import { Architecture } from "./_components/architecture";
+import { CaseStudy } from "./_components/case-study";
 import { ConformanceDemo } from "./_components/conformance-demo";
-import { Converters } from "./_components/converters";
 import { CTA } from "./_components/cta";
 import { Hero } from "./_components/hero";
+import { PageRails } from "./_components/page-rails";
+import { PlaygroundTeaser } from "./_components/playground-teaser";
 import { Transform } from "./_components/transform";
-import { TrustStrip } from "./_components/trust-strip";
 
 export default function HomePage() {
   return (
     <main className="relative isolate">
+      <PageRails />
       <Hero />
-      <TrustStrip />
+      <PlaygroundTeaser />
       <Transform />
-      <Architecture />
+      <CaseStudy />
       <ConformanceDemo />
       <Adapters />
-      <Converters />
       <CTA />
     </main>
   );

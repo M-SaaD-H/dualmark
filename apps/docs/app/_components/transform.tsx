@@ -46,15 +46,15 @@ export function Transform() {
   return (
     <Section id="transform">
       <SectionHeader
-        eyebrow="What it does"
+        eyebrow="How it works"
         title={
           <>
-            One URL.{" "}
-            <span className="text-[var(--color-accent)]">Two responses.</span>{" "}
-            The right one wins.
+            Same URL.{" "}
+            <span className="text-[var(--color-accent)]">Two formats.</span>{" "}
+            AI agents see the markdown.
           </>
         }
-        description="Browsers see the page you already ship. AI agents see clean markdown — no JS, no nav, no cookie banner. Picked at the edge by HTTP content negotiation."
+        description="Browsers get the page you already ship. AI agents get clean markdown — no JS, no nav, no cookie banner. Picked at the edge by HTTP content negotiation, no duplicate URLs."
       />
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 lg:grid-cols-2">

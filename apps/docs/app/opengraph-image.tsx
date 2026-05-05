@@ -1,16 +1,16 @@
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgImage } from "@/lib/og";
 
 export const runtime = "edge";
-export const alt = "ChatGPT cites your competitor — Dualmark fixes that.";
+export const alt = "Dualmark — AEO infrastructure for marketing sites";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
 export default function Image() {
   return renderOgImage({
     eyebrow: "Open source · Apache 2.0",
-    title: "ChatGPT cites your competitor.",
+    title: "The AEO infrastructure your marketing site is missing.",
     description:
-      "Not a content problem — an infrastructure problem. Give every page a markdown twin. Score it.",
+      "Your blog ranks #1 on Google. ChatGPT cites your competitor. Give every page a markdown twin AI agents can read.",
     footer: "$ bunx @dualmark/cli verify",
   });
 }
