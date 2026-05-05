@@ -5,17 +5,44 @@ description: Get a fully dual-marked Astro site running in under 2 minutes.
 
 The fastest path to a fully dual-marked site is the Astro integration.
 
-## 1. Install
+<Steps>
 
+<Step>
+
+## Install
+
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
 ```bash
 pnpm add @dualmark/astro @dualmark/core @dualmark/converters
 ```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
 
-## 2. Configure
+</Step>
 
-Add Dualmark to your `astro.config.mjs`:
+<Step>
 
-```js
+## Configure
+
+Add Dualmark to your Astro config.
+
+```js title="astro.config.mjs"
 import { defineConfig } from "astro/config";
 import dualmark from "@dualmark/astro";
 
@@ -33,7 +60,11 @@ export default defineConfig({
 });
 ```
 
-## 3. Build
+</Step>
+
+<Step>
+
+## Build
 
 ```bash
 pnpm build
@@ -41,7 +72,11 @@ pnpm build
 
 Every blog post now has a markdown twin at `/blog/<slug>.md`, an `llms.txt` is auto-generated, and an Astro middleware injects the `Link: <…>; rel="alternate"; type="text/markdown"` header on every HTML response.
 
-## 4. Verify
+</Step>
+
+<Step>
+
+## Verify
 
 ```bash
 pnpm dev
@@ -49,7 +84,11 @@ pnpm dev
 npx @dualmark/cli verify http://localhost:4321/blog/your-post
 ```
 
-Expect `Score 80/80 (or higher with full negotiation)`.
+Expect `Score 80/80` (or higher with full negotiation).
+
+</Step>
+
+</Steps>
 
 ## Next steps
 

@@ -30,13 +30,32 @@ app/
 
 ## Install
 
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
 ```bash
 pnpm add @dualmark/core @dualmark/converters
 ```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
 
 ## middleware.ts
 
-```ts
+```ts title="middleware.ts"
 import { detectAIBot, negotiateFormat } from "@dualmark/core";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -94,7 +113,7 @@ export function middleware(req: NextRequest) {
 
 ## app/md/[...path]/route.ts
 
-```ts
+```ts title="app/md/[...path]/route.ts"
 import { markdownResponse } from "@dualmark/core";
 import { blogConverter } from "@dualmark/converters";
 

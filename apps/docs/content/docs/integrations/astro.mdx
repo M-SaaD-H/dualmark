@@ -5,14 +5,32 @@ description: Add Dualmark to an Astro 5 site with one integration.
 
 ## Install
 
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
 ```bash
 pnpm add @dualmark/astro @dualmark/core @dualmark/converters
 ```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
 
 ## Minimal config
 
-```js
-// astro.config.mjs
+```js title="astro.config.mjs"
 import { defineConfig } from "astro/config";
 import dualmark from "@dualmark/astro";
 
@@ -39,7 +57,7 @@ This auto-generates:
 
 ## Full config
 
-```js
+```js title="astro.config.mjs"
 dualmark({
   siteUrl: "https://example.com",
 

@@ -5,14 +5,33 @@ description: Framework-agnostic primitives for AEO infrastructure.
 
 Zero runtime dependencies. ESM + CJS. Strict TypeScript.
 
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
 ```bash
 pnpm add @dualmark/core
 ```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/core
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/core
+```
+</Tab>
+</Tabs>
 
 ## Content negotiation
 
 ```ts
-import { parseAcceptHeader, negotiateFormat, registerFormat } from "@dualmark/core";
+import { parseAcceptHeader, negotiateFormat } from "@dualmark/core";
 ```
 
 ### `parseAcceptHeader(accept: string): ParsedMediaType[]`
@@ -22,10 +41,6 @@ Parses an `Accept` header per RFC 7231 §5.3.2, returning entries sorted by qual
 ### `negotiateFormat(accept: string): "html" | "markdown" | null`
 
 Picks the best response format. Returns `null` when neither HTML nor markdown is acceptable (caller should respond `406`).
-
-### `registerFormat(name, mediaType, qFactor)`
-
-Add a custom format to the negotiation registry.
 
 ## AI bot detection
 
@@ -44,7 +59,7 @@ The full registry, exported for inspection or extension.
 ## Markdown response
 
 ```ts
-import { markdownResponse, injectMarkdownAlternateLink, renderLinkAlternateHeader } from "@dualmark/core";
+import { markdownResponse, injectMarkdownAlternateLink } from "@dualmark/core";
 ```
 
 ### `markdownResponse(body, options?): Response`
@@ -61,26 +76,36 @@ markdownResponse("# Hello", {
 });
 ```
 
-### `injectMarkdownAlternateLink(response, mdPath): Response`
+### `injectMarkdownAlternateLink(response, htmlPath, mdPath): Response`
 
 Returns a new `Response` with the `Link rel="alternate"; type="text/markdown"` header appended.
 
-### `renderLinkAlternateHeader(mdPath): string`
+## Path utilities
 
-Returns just the header value: `<mdPath>; rel="alternate"; type="text/markdown"`.
+```ts
+import { toMarkdownPath, toMarkdownUrl } from "@dualmark/core";
+
+toMarkdownPath("/blog/post");           // → "/blog/post.md"
+toMarkdownPath("/");                    // → "/index.md"
+toMarkdownPath("/blog/post.md");        // → "/blog/post.md"  (idempotent)
+
+toMarkdownUrl("https://x.com/blog?q=1"); // → "https://x.com/blog.md?q=1"
+```
+
+Both helpers are idempotent on already-`.md` inputs.
 
 ## Token estimation
 
 ```ts
-import { estimateTokens, setTokenEstimator, resetTokenEstimator } from "@dualmark/core";
+import { estimateTokens } from "@dualmark/core";
 ```
 
-Default estimator splits on whitespace; pluggable via `setTokenEstimator((s) => count)` for tiktoken or model-specific counters.
+Whitespace-split counter — fast, zero-dep, good enough for `X-Markdown-Tokens`.
 
 ## Text utilities
 
 ```ts
-import { normalizeUnicode, cleanBody, stripImages, slugToTitle, fmtDate, joinLines } from "@dualmark/core";
+import { normalizeUnicode, cleanBody, slugToTitle, fmtDate, joinLines } from "@dualmark/core";
 ```
 
 For writing markdown converters by hand. See source for signatures.
@@ -88,10 +113,10 @@ For writing markdown converters by hand. See source for signatures.
 ## Composition helpers
 
 ```ts
-import { listingToMarkdown, renderRelatedLinks, renderFAQSection, renderPlatformFooter } from "@dualmark/core";
+import { listingToMarkdown, renderRelatedLinks, renderFAQSection } from "@dualmark/core";
 ```
 
-Common markdown patterns: collection listings, related-links blocks, FAQ rendering, branded footers.
+Common markdown patterns: collection listings, related-links blocks, FAQ rendering.
 
 ## llms.txt
 

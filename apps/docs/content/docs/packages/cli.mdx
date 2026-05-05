@@ -3,11 +3,36 @@ title: "@dualmark/cli"
 description: "`dualmark verify <url>` — conformance test runner."
 ---
 
+<Tabs items={["pnpm", "npm", "yarn", "bun"]}>
+<Tab value="pnpm">
 ```bash
 pnpm add -g @dualmark/cli
 # or run ad-hoc:
+pnpm dlx @dualmark/cli verify https://example.com
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install -g @dualmark/cli
+# or run ad-hoc:
 npx @dualmark/cli verify https://example.com
 ```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn global add @dualmark/cli
+# or run ad-hoc:
+yarn dlx @dualmark/cli verify https://example.com
+```
+</Tab>
+<Tab value="bun">
+```bash
+bun add -g @dualmark/cli
+# or run ad-hoc:
+bunx @dualmark/cli verify https://example.com
+```
+</Tab>
+</Tabs>
 
 ## CLI
 

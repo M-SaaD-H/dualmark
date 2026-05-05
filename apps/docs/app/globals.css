@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/vitepress.css";
 @import "fumadocs-ui/css/preset.css";
 
 @theme {
@@ -207,21 +207,22 @@ article h3 {
   margin-top: 2rem !important;
 }
 
+/*
+ * Inline code (in paragraphs / list items / table cells) only.
+ * `article pre` is intentionally NOT overridden — Fumadocs' built-in
+ * code block chrome (filename header, language badge, copy button,
+ * Shiki syntax highlighting) handles that. Overriding it here would
+ * strip that chrome.
+ */
 article p code,
 article li code,
 article td code {
-  background: var(--color-bg-elev-2) !important;
+  background: var(--color-bg-elev-2);
   border: 1px solid var(--color-border);
   padding: 0.1rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.85em;
   color: var(--color-accent-strong);
-}
-
-article pre {
-  border: 1px solid var(--color-border) !important;
-  background: var(--color-bg-elev-1) !important;
-  border-radius: 0.5rem !important;
 }
 
 article a:not([data-card]):not([data-active]) {
