@@ -3,8 +3,39 @@ import { createRelativeLink } from "fumadocs-ui/mdx";
 import { notFound } from "next/navigation";
 import { CombinedAIButton } from "@/components/page-actions";
 import { DocsPageFooter } from "@/components/docs-page-footer";
+import {
+  JsonLd,
+  breadcrumbSchema,
+  techArticleSchema,
+} from "@/components/json-ld";
 import { source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
+
+const SECTION_LABELS: Record<string, string> = {
+  integrations: "Integrate",
+  packages: "API reference",
+  conformance: "Conformance",
+  spec: "AEO Spec v1.0",
+  quickstart: "Get started",
+  concepts: "Get started",
+};
+
+function buildBreadcrumb(slug: string[] | undefined, title: string) {
+  const items = [
+    { name: "Documentation", url: "/docs" },
+  ];
+  if (slug && slug.length > 1) {
+    const sectionKey = slug[0];
+    items.push({
+      name: SECTION_LABELS[sectionKey] ?? sectionKey,
+      url: `/docs/${sectionKey}`,
+    });
+  }
+  if (slug && slug.length > 0) {
+    items.push({ name: title, url: `/docs/${slug.join("/")}` });
+  }
+  return items;
+}
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
   const params = await props.params;
@@ -19,12 +50,25 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
     : `https://github.com/dodopayments/dualmark/blob/main/apps/docs/content/docs/${filePath}`;
   const rawUrl = `/raw${page.url}`;
 
+  const breadcrumbItems = buildBreadcrumb(params.slug, page.data.title);
+
   return (
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
       breadcrumb={{ includePage: true, includeSeparator: true }}
     >
+      <JsonLd
+        data={[
+          techArticleSchema({
+            title: page.data.title,
+            description: page.data.description ?? "",
+            url: page.url,
+            section: SECTION_LABELS[params.slug?.[0] ?? ""] ?? "Documentation",
+          }),
+          breadcrumbSchema(breadcrumbItems),
+        ]}
+      />
       <DocsTitle className="flex flex-row items-start justify-between gap-4">
         <span>{page.data.title}</span>
         <div className="hidden shrink-0 md:block">
@@ -59,8 +103,34 @@ export async function generateMetadata(props: { params: Promise<{ slug?: string[
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) return {};
+  const eyebrow = SECTION_LABELS[params.slug?.[0] ?? ""] ?? "Documentation";
+  const ogParams = new URLSearchParams({
+    title: page.data.title,
+    eyebrow,
+  });
+  if (page.data.description) ogParams.set("description", page.data.description);
+  const ogUrl = `/api/og?${ogParams.toString()}`;
   return {
     title: page.data.title,
     description: page.data.description,
+    alternates: {
+      canonical: page.url,
+      types: {
+        "text/markdown": `/raw${page.url}`,
+      },
+    },
+    openGraph: {
+      title: page.data.title,
+      description: page.data.description,
+      url: page.url,
+      type: "article",
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: page.data.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: page.data.title,
+      description: page.data.description,
+      images: [ogUrl],
+    },
   };
 }
