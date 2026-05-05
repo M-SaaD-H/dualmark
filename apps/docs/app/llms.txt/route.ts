@@ -59,7 +59,7 @@ export function GET(): Response {
   const body = renderLlmsTxt({
     brandName: "Dualmark",
     description:
-      "Open-source AEO infrastructure for marketing sites. Every page has a markdown twin at the same URL with .md appended. Picked by HTTP content negotiation. Drop into Astro, Next.js, or Cloudflare in 30 seconds.",
+      "Your blog ranks #1 on Google. ChatGPT cites your competitor. That's an infrastructure problem. Dualmark is open-source AEO infrastructure that gives every page a markdown twin AI agents can read — same URL, two formats, picked at the edge by HTTP content negotiation.",
     sections,
   });
 

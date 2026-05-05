@@ -4,11 +4,9 @@ export const dynamic = "force-static";
 
 const BODY = `# Dualmark
 
-> Open-source AEO infrastructure for marketing sites.
+> Your blog ranks #1 on Google. ChatGPT cites your competitor. That's an infrastructure problem.
 
-Your blog ranks #1 on Google. ChatGPT cites your competitor.
-
-That's not a content problem. It's an **infrastructure problem**. AI search engines (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews) read the web differently from humans — they want clean markdown without nav chrome, JavaScript, or cookie banners. Most marketing sites give them HTML soup and wonder why they get ignored.
+Dualmark is open-source AEO infrastructure for marketing sites. AI search engines (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews) read the web differently from humans — they want clean markdown without nav chrome, JavaScript, or cookie banners. Most marketing sites give them HTML soup and wonder why they get ignored.
 
 **Dualmark gives every page a markdown twin.** Same URL. Two formats. Picked by HTTP content negotiation. Drop into your Astro/Next.js/Cloudflare stack in 30 seconds. Score it with \`dualmark verify\`.
 

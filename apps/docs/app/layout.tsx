@@ -46,7 +46,7 @@ export const metadata = {
     template: "%s · Dualmark",
   },
   description:
-    "Open-source AEO (Answer Engine Optimization) infrastructure. Every page, dual-marked. Same URL, two formats — picked by HTTP content negotiation. Drop into Astro, Next.js, or Cloudflare in 30 seconds.",
+    "Your blog ranks #1 on Google. ChatGPT cites your competitor. That's an infrastructure problem. Dualmark gives every page a markdown twin AI agents can read — same URL, two formats, picked at the edge.",
   metadataBase: new URL("https://dualmark.dev"),
   applicationName: "Dualmark",
   authors: [{ name: "Dodo Payments", url: "https://dodopayments.com" }],
@@ -90,7 +90,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "Dualmark — AEO infrastructure for marketing sites",
     description:
-      "Open-source AEO infrastructure. Every page, dual-marked. Drop into Astro, Next.js, or Cloudflare in 30 seconds.",
+      "Your blog ranks #1 on Google. ChatGPT cites your competitor. That's an infrastructure problem. Dualmark fixes it.",
     creator: "@dodopayments",
   },
   robots: {

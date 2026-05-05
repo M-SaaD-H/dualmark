@@ -21,7 +21,7 @@ export const organizationSchema = {
   url: SITE_URL,
   logo: `${SITE_URL}/icon.svg`,
   description:
-    "Open-source AEO (Answer Engine Optimization) infrastructure. Every page, dual-marked.",
+    "Your blog ranks #1 on Google. ChatGPT cites your competitor. Dualmark is open-source AEO infrastructure that gives every page a markdown twin AI agents can read.",
   sameAs: ["https://github.com/dodopayments/dualmark"],
   foundingDate: "2026",
   parentOrganization: {
