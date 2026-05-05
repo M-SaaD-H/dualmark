@@ -19,6 +19,9 @@ function parseArgs(argv: ReadonlyArray<string>): ParsedArgs {
   if (args[0] !== "verify") {
     return { command: "help" };
   }
+  if (args.slice(1).some((a) => a === "--help" || a === "-h" || a === "help")) {
+    return { command: "help" };
+  }
   let url: string | undefined;
   let json = false;
   let skipNegotiation = false;
