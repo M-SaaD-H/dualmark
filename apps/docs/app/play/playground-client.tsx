@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, type ReactNode, useState } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { BrandMark } from "../_components/brand-mark";
 
 type Severity = "required" | "recommended";
 type Level = "Advanced" | "Standard" | "Basic" | "Below Basic";
+type Framework = "astro" | "next" | "cloudflare" | "unknown";
 
 interface CheckSummary {
   id: string;
@@ -23,11 +30,34 @@ interface ScoreResult {
   percentage: number;
   ratio: number;
   level: Level;
+  framework: Framework;
+  frameworkSignals: string[];
   durationMs: number;
   skippedNegotiation: boolean;
   passed: CheckSummary[];
   failed: CheckSummary[];
 }
+
+const FRAMEWORK_LABEL: Record<Framework, string> = {
+  astro: "Astro",
+  next: "Next.js",
+  cloudflare: "Cloudflare Workers",
+  unknown: "your stack",
+};
+
+const FRAMEWORK_PACKAGE: Record<Framework, string> = {
+  astro: "@dualmark/astro",
+  next: "@dualmark/core",
+  cloudflare: "@dualmark/cloudflare",
+  unknown: "@dualmark/core",
+};
+
+const FRAMEWORK_DOCS: Record<Framework, string> = {
+  astro: "https://dualmark.dev/docs/integrations/astro",
+  next: "https://dualmark.dev/docs/integrations/nextjs",
+  cloudflare: "https://dualmark.dev/docs/integrations/cloudflare-workers",
+  unknown: "https://dualmark.dev/docs/quickstart",
+};
 
 const EXAMPLES = [
   { label: "dodopayments.com", url: "https://dodopayments.com" },
@@ -367,6 +397,8 @@ function ResultPanel({ result }: { result: ScoreResult }) {
         emptyMessage="No checks passed."
       />
 
+      {result.failed.length > 0 && <FixWithAI result={result} />}
+
       <NextStepsCard result={result} />
     </div>
   );
@@ -514,6 +546,200 @@ function CheckList({
   );
 }
 
+function buildFixPrompt(result: ScoreResult): string {
+  const required = result.failed.filter((c) => c.severity === "required");
+  const recommended = result.failed.filter(
+    (c) => c.severity === "recommended",
+  );
+  const fwLabel = FRAMEWORK_LABEL[result.framework];
+  const pkg = FRAMEWORK_PACKAGE[result.framework];
+  const docs = FRAMEWORK_DOCS[result.framework];
+
+  const failureLines = [...required, ...recommended].map(
+    (c) =>
+      `- [${c.severity === "required" ? "REQUIRED" : "recommended"}] ${c.id} (-${c.weight}): ${c.description}\n  Reason: ${c.message}`,
+  );
+
+  return `I need help making my site AI-search ready (AEO — Answer Engine Optimization).
+
+I just scored my site against the AEO Spec v1.0 and got ${result.score}/${result.maxScore} (${result.percentage}%, level: ${result.level}).
+
+## Site
+- URL: ${result.url}
+- Markdown twin URL (expected): ${result.mdUrl}
+- Detected stack: ${fwLabel}
+
+## What failed (${result.failed.length} checks)
+${failureLines.join("\n")}
+
+## What I want you to help me do
+Implement Dualmark on my site so AI agents (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews) can read and cite my content.
+
+The recommended package for ${fwLabel} is **${pkg}**.
+
+Documentation: ${docs}
+
+For ${fwLabel === "Astro" ? "Astro, install `@dualmark/astro` and add it to `astro.config.mjs` as an integration." : fwLabel === "Next.js" ? "Next.js (App Router), install `@dualmark/core` and `@dualmark/converters`, then wire content negotiation into `middleware.ts` and add a catch-all `/[[...slug]].md` route handler." : fwLabel === "Cloudflare Workers" ? "Cloudflare Workers, install `@dualmark/cloudflare` and wrap your existing Worker with `createAEOWorker()`." : "any framework, start with `@dualmark/core` (framework-agnostic primitives) and check the quickstart docs for your specific stack."}
+
+Please:
+1. Walk me through the exact code changes needed to fix the failing checks above.
+2. Show me the diff against my current setup if possible.
+3. Explain how each change addresses a specific failed check (reference the check IDs above).
+4. Verify your suggestions match the AEO Spec at https://dualmark.dev/docs/spec/overview
+
+After I implement, I'll re-run https://dualmark.dev/play to confirm the fixes worked.`;
+}
+
+function FixWithAI({ result }: { result: ScoreResult }) {
+  const prompt = useMemo(() => buildFixPrompt(result), [result]);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  async function copyPrompt() {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopied(true);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = prompt;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "absolute";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        setCopied(true);
+      } catch {
+        void 0;
+      }
+      document.body.removeChild(ta);
+    }
+  }
+
+  function openWith(target: "chatgpt" | "claude" | "cursor") {
+    const encoded = encodeURIComponent(prompt);
+    const urls: Record<typeof target, string> = {
+      chatgpt: `https://chatgpt.com/?q=${encoded}`,
+      claude: `https://claude.ai/new?q=${encoded}`,
+      cursor: `cursor://anysphere.cursor-deeplink/prompt?text=${encoded}`,
+    };
+    window.open(urls[target], "_blank", "noopener,noreferrer");
+  }
+
+  const detectedLabel = FRAMEWORK_LABEL[result.framework];
+  const isUnknown = result.framework === "unknown";
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-[var(--color-accent)]/30 bg-gradient-to-br from-[var(--color-bg-elev-1)] to-[var(--color-accent-soft)]/40">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)]/60 bg-[var(--color-bg-elev-2)]/40 px-5 py-3">
+        <div className="flex items-center gap-2">
+          <SparkleIcon className="size-4 text-[var(--color-accent)]" />
+          <h3 className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            Fix with AI
+          </h3>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-fg-subtle)]">
+          {isUnknown ? "Stack: unknown" : `Detected: ${detectedLabel}`}
+        </span>
+      </header>
+
+      <div className="flex flex-col gap-4 px-5 py-5">
+        <p className="text-sm text-[var(--color-fg)]">
+          Hand the fix to your AI coding assistant. We&apos;ll generate a
+          prompt with your failed checks, the {isUnknown ? "recommended" : detectedLabel}{" "}
+          integration steps, and links to the spec.
+        </p>
+
+        <details className="group rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)]">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-2.5 text-xs text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]">
+            <span className="font-mono uppercase tracking-wider">
+              Preview prompt ({prompt.length.toLocaleString()} chars)
+            </span>
+            <ChevronIcon className="size-3.5 transition-transform group-open:rotate-180" />
+          </summary>
+          <pre className="max-h-72 overflow-auto border-t border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-3 font-mono text-[11px] leading-relaxed text-[var(--color-fg-muted)] whitespace-pre-wrap">
+            {prompt}
+          </pre>
+        </details>
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <LaunchButton
+            onClick={() => openWith("chatgpt")}
+            label="ChatGPT"
+            icon={<ChatGptGlyph className="size-4" />}
+          />
+          <LaunchButton
+            onClick={() => openWith("claude")}
+            label="Claude"
+            icon={<ClaudeGlyph className="size-4" />}
+          />
+          <LaunchButton
+            onClick={() => openWith("cursor")}
+            label="Cursor"
+            icon={<CursorGlyph className="size-4" />}
+          />
+          <LaunchButton
+            onClick={copyPrompt}
+            label={copied ? "Copied!" : "Copy"}
+            icon={
+              copied ? (
+                <CheckIcon className="size-4 text-[var(--color-success)]" />
+              ) : (
+                <CopyIcon className="size-4" />
+              )
+            }
+            highlight={copied}
+          />
+        </div>
+
+        <p className="text-[11px] text-[var(--color-fg-subtle)]">
+          The prompt recommends{" "}
+          <code className="font-mono text-[var(--color-fg-muted)]">
+            {FRAMEWORK_PACKAGE[result.framework]}
+          </code>
+          {" — "}
+          ChatGPT/Claude open with the prompt prefilled · Cursor uses its
+          deeplink protocol (will prompt to open the app) · Copy puts the
+          prompt on your clipboard for any other tool.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function LaunchButton({
+  onClick,
+  label,
+  icon,
+  highlight,
+}: {
+  onClick: () => void;
+  label: string;
+  icon: ReactNode;
+  highlight?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-md border px-3 text-xs font-medium transition-all ${
+        highlight
+          ? "border-[var(--color-success)]/50 bg-[var(--color-success)]/10 text-[var(--color-fg)]"
+          : "border-[var(--color-border)] bg-[var(--color-bg-elev-1)] text-[var(--color-fg)] hover:border-[var(--color-accent)]/50 hover:bg-[var(--color-bg-elev-2)]"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
 function NextStepsCard({ result }: { result: ScoreResult }) {
   const requiredCount = result.failed.filter(
     (c) => c.severity === "required",
@@ -645,6 +871,92 @@ function ChevronIcon({ className }: { className?: string }) {
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+function SparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M12 3l1.8 4.8L18.6 9.6 13.8 11.4 12 16.2 10.2 11.4 5.4 9.6l4.8-1.8L12 3z"
+        fill="currentColor"
+        opacity="0.85"
+      />
+      <path
+        d="M19 15l.9 2.4L22.3 18.3 19.9 19.2 19 21.6 18.1 19.2 15.7 18.3 18.1 17.4 19 15z"
+        fill="currentColor"
+        opacity="0.55"
+      />
+    </svg>
+  );
+}
+function CopyIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <rect
+        x="9"
+        y="9"
+        width="11"
+        height="11"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M5 15V6a2 2 0 0 1 2-2h9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="m5 12 5 5L20 7"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function ChatGptGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path
+        d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.057 6.057 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.057 6.057 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.142-.08 4.774-2.757a.795.795 0 0 0 .392-.681v-6.737l2.018 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.488 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.778 2.758a.777.777 0 0 0 .787 0l5.831-3.367v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.018 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.773 2.758a.795.795 0 0 0-.393.681zm1.097-2.365 2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+function ClaudeGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path
+        d="M4.709 15.955l4.72-2.647.079-.23-.079-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.448.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.146-.103.018-.072-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 0 1-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.142-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.413.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+function CursorGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path
+        d="M11.925 24l10.425-6.01V5.99L11.925 0 1.5 5.99v12L11.925 24z"
+        fill="currentColor"
+        opacity="0.95"
+      />
+      <path
+        d="M22.35 5.99L11.925 12 1.5 5.99 11.925 24V12z"
+        fill="currentColor"
+        opacity="0.55"
       />
     </svg>
   );
