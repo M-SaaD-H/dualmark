@@ -75,7 +75,7 @@ export default defineConfig({
 
 ## Built-in converter names
 
-`blog`, `case-study`, `glossary`, `legal`, `compare`, `tool`, `video`, `tax`, `country`, `payment-method`, `currency`, `product`
+`blog`, `case-study`, `changelog`, `compare`, `docs`, `feature`, `glossary`, `legal`, `pricing`, `pseo`, `tool`, `video`
 
 Pass any string from this list as `converter`, or pass a function (currently not serializable into generated routes — coming in v0.2).
 

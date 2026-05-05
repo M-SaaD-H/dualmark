@@ -1,5 +1,3 @@
-import { detectAIBot } from "@dualmark/core";
-
 export type CheckSeverity = "required" | "recommended";
 
 export interface CheckResult {
@@ -340,8 +338,6 @@ export async function verifyUrl(input: string, options: VerifyOptions = {}): Pro
       ),
     );
   }
-
-  void detectAIBot;
 
   return finalizeReport({
     url: htmlUrl,

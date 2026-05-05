@@ -5,6 +5,7 @@ build/
 .turbo/
 .astro/
 .cache/
+.source/
 .wrangler/
 coverage/
 *.log
