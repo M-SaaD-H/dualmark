@@ -40,7 +40,9 @@ describe("blogConverter", () => {
     expect(out).toContain("- **Published**: 2026-05-01");
     expect(out).toContain("- **URL**: https://acme.test/blog/first-post");
     expect(out).toContain("Hello world.");
-    expect(out).toContain("[More engineering articles](https://acme.test/blog/category/engineering)");
+    expect(out).toContain(
+      "[More engineering articles](https://acme.test/blog/category/engineering)",
+    );
     expect(out).toContain("[All articles](https://acme.test/blog)");
   });
 
@@ -624,6 +626,7 @@ describe("BUILT_IN_CONVERTERS export", () => {
       "legal",
       "pricing",
       "pseo",
+      "status-page",
       "tool",
       "video",
     ]);

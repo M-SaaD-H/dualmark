@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`statusPageConverter > renders a realistic status page snapshot 1`] = `
+"# Acme Cloud Status
+
+> Degraded
+- **Overall**: Degraded
+- **URL**: https://status.acme.test
+
+## Components
+
+- **API**: degraded (90d uptime 99.72%)
+- **Edge Network**: operational (90d uptime 99.99%)
+- **Web Dashboard**: operational
+- **Billing**: partial outage (90d uptime 98.88%)
+
+## Incidents
+### Ongoing incidents
+
+- **Intermittent 5xx responses** (2026-05-08) -- We are investigating elevated error rates on API writes.
+### Resolved incidents
+
+- **Scheduled database maintenance** (2026-05-02) -- Maintenance completed; replicas are healthy.
+- **Billing webhook delays** (2026-04-25) -- Queue backlog cleared and processing is stable.
+
+---"
+`;
