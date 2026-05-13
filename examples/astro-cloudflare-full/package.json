@@ -15,7 +15,7 @@
     "@dualmark/cloudflare": "workspace:*",
     "@dualmark/core": "workspace:*",
     "@dualmark/converters": "workspace:*",
-    "astro": "^5.0.0"
+    "astro": "^6.1.10"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",
