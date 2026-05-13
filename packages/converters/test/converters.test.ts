@@ -7,6 +7,8 @@ import {
   docsConverter,
   featureConverter,
   glossaryConverter,
+  integrationConverter,
+  type IntegrationEntryData,
   legalConverter,
   pricingConverter,
   pseoConverter,
@@ -144,6 +146,106 @@ describe("glossaryConverter", () => {
       },
     });
     expect(out).toContain("[External](https://example.com/x)");
+  });
+});
+
+describe("integrationConverter", () => {
+  const convert = integrationConverter({ siteUrl: SITE, basePath: "/integrations" });
+
+  it("renders capabilities prominently with setup, pricing, and requirements", () => {
+    const out = convert({
+      id: "stripe",
+      data: {
+        title: "Connect Stripe to Acme",
+        vendor: "Stripe",
+        category: ["Payments", "Finance"],
+        description: "Accept cards and subscriptions inside Acme.",
+        capabilities: [
+          "PCI-aware checkout hosted by Stripe",
+          "Webhooks for payment lifecycle events",
+          "Customer portal for self-serve billing",
+        ],
+        setupSteps: ["Create a Stripe account", "Paste API keys in Acme", "Enable the integration"],
+        pricing: "Stripe processing fees apply; Acme does not add a platform fee for this connector.",
+        requirements: ["Acme Business plan", "Verified business profile"],
+      },
+      body: "See the [Stripe docs](https://stripe.com/docs) for API details.",
+    });
+    expect(out).toContain("# Connect Stripe to Acme");
+    expect(out).toContain("- **Vendor**: Stripe");
+    expect(out).toContain("- **Categories**: Payments, Finance");
+    expect(out).toContain("> Accept cards and subscriptions inside Acme.");
+    expect(out).toContain("## Capabilities");
+    expect(out).toContain("- PCI-aware checkout hosted by Stripe");
+    expect(out).toContain("- Webhooks for payment lifecycle events");
+    expect(out).toContain("## Setup");
+    expect(out).toContain("1. Create a Stripe account");
+    expect(out).toContain("## Pricing");
+    expect(out).toContain("Stripe processing fees apply");
+    expect(out).toContain("## Requirements");
+    expect(out).toContain("- Acme Business plan");
+    expect(out).toContain("- **URL**: https://acme.test/integrations/stripe");
+    expect(out).toContain("See the [Stripe docs](https://stripe.com/docs) for API details.");
+  });
+
+  it("works with minimal data", () => {
+    const c = integrationConverter({ siteUrl: SITE, basePath: "/i" });
+    const out = c({
+      id: "slack",
+      data: {
+        title: "Slack",
+        vendor: "Slack Technologies",
+        category: [],
+        description: "",
+        capabilities: ["Post messages to a channel"],
+      },
+    });
+    expect(out).toContain("# Slack");
+    expect(out).toContain("## Capabilities");
+    expect(out).toContain("- Post messages to a channel");
+    expect(out).toContain("/i/slack");
+  });
+
+  it("uses vendor or entry id when title is blank or missing at runtime", () => {
+    const c = integrationConverter({ siteUrl: SITE, basePath: "/integrations" });
+    expect(
+      c({
+        id: "stripe",
+        data: {
+          title: "   ",
+          vendor: "Stripe",
+          category: [],
+          description: "",
+          capabilities: ["x"],
+        },
+      }),
+    ).toContain("# Stripe");
+
+    expect(
+      c({
+        id: "orphan",
+        data: {
+          title: "",
+          vendor: "",
+          category: [],
+          description: "",
+          capabilities: [],
+        } as IntegrationEntryData,
+      }),
+    ).toContain("# orphan");
+
+    expect(
+      c({
+        id: "slack",
+        data: {
+          title: undefined as unknown as string,
+          vendor: "Slack",
+          category: [],
+          description: "",
+          capabilities: [],
+        },
+      }),
+    ).toContain("# Slack");
   });
 });
 
@@ -489,7 +591,7 @@ describe("docsConverter", () => {
 });
 
 describe("BUILT_IN_CONVERTERS export", () => {
-  it("lists all 12 generic built-in names in alphabetical order", () => {
+  it("lists all 13 generic built-in names in alphabetical order", () => {
     expect(BUILT_IN_CONVERTERS).toEqual([
       "blog",
       "case-study",
@@ -498,6 +600,7 @@ describe("BUILT_IN_CONVERTERS export", () => {
       "docs",
       "feature",
       "glossary",
+      "integration",
       "legal",
       "pricing",
       "pseo",

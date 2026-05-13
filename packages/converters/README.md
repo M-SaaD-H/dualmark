@@ -19,6 +19,7 @@ bun add @dualmark/converters @dualmark/core
 | `docsConverter` | Documentation pages |
 | `featureConverter` | Feature/product pages with siblings, FAQ, problem/solution |
 | `glossaryConverter` | Glossary terms (with learn-more + canonical-blog) |
+| `integrationConverter` | Marketplace / app integration listings (vendor, categories, capabilities) |
 | `legalConverter` | Legal pages |
 | `pricingConverter` | Pricing tables with tier highlights and CTAs |
 | `pseoConverter` | Programmatic SEO pages with facts + related-link groups |

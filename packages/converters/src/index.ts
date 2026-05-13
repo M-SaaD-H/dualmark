@@ -9,6 +9,11 @@ export {
   type GlossaryConverterConfig,
   type GlossaryEntryData,
 } from "./glossary.js";
+export {
+  integrationConverter,
+  type IntegrationConverterConfig,
+  type IntegrationEntryData,
+} from "./integration.js";
 export { legalConverter, type LegalConverterConfig, type LegalEntryData } from "./legal.js";
 export {
   compareConverter,
@@ -62,6 +67,7 @@ export const BUILT_IN_CONVERTERS = [
   "docs",
   "feature",
   "glossary",
+  "integration",
   "legal",
   "pricing",
   "pseo",
