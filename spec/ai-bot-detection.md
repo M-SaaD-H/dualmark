@@ -33,7 +33,7 @@ A server matching by User-Agent SHOULD use case-insensitive substring matching a
 | Omgilibot | `Omgilibot` | Webz.io | training | — |
 | DuckAssistBot | `DuckAssistBot` | DuckDuckGo | search | — |
 | Meta-ExternalAgent | `meta-externalagent` | Meta | training | — |
-| Meta-ExternalFetcher | `ExternalFetcher` | Meta | training | — |
+| Meta-ExternalFetcher | `meta-externalfetcher` | Meta | training | — |
 
 ## Purpose Categories
 

@@ -168,7 +168,7 @@ export const AI_BOTS: ReadonlyArray<AIBotEntry> = [
   },
   {
     name: "Meta-ExternalFetcher",
-    uaPattern: "ExternalFetcher",
+    uaPattern: "meta-externalfetcher",
     vendor: "Meta",
     purpose: "training",
   },

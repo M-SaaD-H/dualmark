@@ -1,6 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { detectAIBot, AI_BOTS } from "../src/bots.js";
 
+function uaPatternOk(pattern: string, name: string, vendor: string): boolean {
+  if (pattern.includes("-")) return true; // hyphen: namespaced id
+  const p = pattern.toLowerCase();
+  if (vendor.toLowerCase().split(/[^a-z0-9]+/).some((t) => t.length >= 3 && p.includes(t))) return true; // vendor substring (≥3 alnum)
+  const c = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return c(pattern) === c(name); // same identity as bot name
+}
+
 describe("detectAIBot", () => {
   it("returns isBot=false for empty UA", () => {
     expect(detectAIBot("")).toEqual({ isBot: false, name: null, vendor: null, purpose: null });
@@ -58,12 +66,27 @@ describe("detectAIBot", () => {
     expect(r).toMatchObject({ isBot: true, name: "Claude-User", vendor: "Anthropic" });
   });
 
-  it("detects Meta-ExternalFetcher", () => {
+  it("detects Meta-ExternalFetcher (vendor-namespaced token, case-insensitive)", () => {
     expect(detectAIBot("Mozilla/5.0 (compatible; Meta-ExternalFetcher/1.0)").name).toBe("Meta-ExternalFetcher");
+    expect(detectAIBot("meta-externalfetcher/1.0").name).toBe("Meta-ExternalFetcher");
+  });
+
+  it("does not falsely match generic ExternalFetcher UAs", () => {
+    expect(detectAIBot("Mozilla/5.0 SomeBrand-ExternalFetcher/2.0").isBot).toBe(false);
+    expect(detectAIBot("Mozilla/5.0 (compatible; MyExternalFetcher/1.0)").isBot).toBe(false);
+    expect(detectAIBot("Bot ExternalFetcher v3").isBot).toBe(false);
   });
 
   it("detects Perplexity-User", () => {
     expect(detectAIBot("Mozilla/5.0 (compatible; Perplexity-User/1.0)").name).toBe("Perplexity-User");
+  });
+
+  it("AI_BOTS uaPattern invariant: hyphen, vendor token (≥3), or collapsed name", () => {
+    for (const b of AI_BOTS) {
+      if (typeof b.uaPattern !== "string") continue;
+      expect(uaPatternOk(b.uaPattern, b.name, b.vendor), `${b.name}: ${JSON.stringify(b.uaPattern)}`).toBe(true);
+    }
+    expect(uaPatternOk("ExternalFetcher", "Meta-ExternalFetcher", "Meta")).toBe(false);
   });
 
   it("AI_BOTS export has unique names", () => {
