@@ -260,7 +260,7 @@ Plus:
 | Surface | Status |
 |---|---|
 | `@dualmark/core` | 174 tests pass (vitest + fast-check property tests) |
-| `@dualmark/converters` | 27 tests pass |
+| `@dualmark/converters` | 28 tests pass |
 | `@dualmark/cloudflare` | 23 tests pass |
 | `@dualmark/cli` | 17 tests pass |
 | `@dualmark/astro` | 35 tests pass |
@@ -273,7 +273,7 @@ Plus:
 
 ```bash
 bun install
-bun run build && bun run test && bun run typecheck   # 323 tests across 6 packages
+bun run build && bun run test && bun run typecheck   # 324 tests across 6 packages
 ```
 
 ---

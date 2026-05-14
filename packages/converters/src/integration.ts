@@ -8,7 +8,7 @@ export interface IntegrationConverterConfig extends BaseConverterConfig {
 export interface IntegrationEntryData {
   title: string;
   vendor: string;
-  category: string[];
+  categories: string[];
   description: string;
   capabilities: string[];
   setupSteps?: string[];
@@ -39,8 +39,8 @@ export function integrationConverter(
 
     parts.push(`\n- **URL**: ${siteUrl}${basePath}/${entry.id}`);
     parts.push(`- **Vendor**: ${d.vendor}`);
-    if (d.category.length > 0) {
-      parts.push(`- **Categories**: ${d.category.join(", ")}`);
+    if (d.categories.length > 0) {
+      parts.push(`- **Categories**: ${d.categories.join(", ")}`);
     }
 
     if (d.description) {

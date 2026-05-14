@@ -158,7 +158,7 @@ describe("integrationConverter", () => {
       data: {
         title: "Connect Stripe to Acme",
         vendor: "Stripe",
-        category: ["Payments", "Finance"],
+        categories: ["Payments", "Finance"],
         description: "Accept cards and subscriptions inside Acme.",
         capabilities: [
           "PCI-aware checkout hosted by Stripe",
@@ -195,7 +195,7 @@ describe("integrationConverter", () => {
       data: {
         title: "Slack",
         vendor: "Slack Technologies",
-        category: [],
+        categories: [],
         description: "",
         capabilities: ["Post messages to a channel"],
       },
@@ -206,6 +206,26 @@ describe("integrationConverter", () => {
     expect(out).toContain("/i/slack");
   });
 
+  it("includes brandFooter when supplied", () => {
+    const c = integrationConverter({
+      siteUrl: SITE,
+      basePath: "/integrations",
+      brandFooter: "## About Acme\n\nMarketplace connectors.",
+    });
+    const out = c({
+      id: "hubspot",
+      data: {
+        title: "HubSpot",
+        vendor: "HubSpot",
+        categories: ["CRM"],
+        description: "Sync contacts.",
+        capabilities: ["Bi-directional sync"],
+      },
+    });
+    expect(out).toContain("## About Acme");
+    expect(out).toContain("Marketplace connectors.");
+  });
+
   it("uses vendor or entry id when title is blank or missing at runtime", () => {
     const c = integrationConverter({ siteUrl: SITE, basePath: "/integrations" });
     expect(
@@ -214,7 +234,7 @@ describe("integrationConverter", () => {
         data: {
           title: "   ",
           vendor: "Stripe",
-          category: [],
+          categories: [],
           description: "",
           capabilities: ["x"],
         },
@@ -227,7 +247,7 @@ describe("integrationConverter", () => {
         data: {
           title: "",
           vendor: "",
-          category: [],
+          categories: [],
           description: "",
           capabilities: [],
         } as IntegrationEntryData,
@@ -240,7 +260,7 @@ describe("integrationConverter", () => {
         data: {
           title: undefined as unknown as string,
           vendor: "Slack",
-          category: [],
+          categories: [],
           description: "",
           capabilities: [],
         },
