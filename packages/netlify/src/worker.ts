@@ -6,10 +6,11 @@ import {
 } from "@dualmark/core";
 import type {
   AIRequestInfo,
-  CreateAEOHandlerOptions,
+  AssetsFetcher,
+  CreateAEOWorkerOptions,
   MissInfo,
+  NetlifyContext,
 } from "./types.js";
-import type { Context } from "@netlify/edge-functions";
 
 const DEFAULT_SKIP_PREFIXES = ["/admin", "/api/", "/_"];
 const DEFAULT_ASSET_EXTENSIONS = [
@@ -31,6 +32,13 @@ const DEFAULT_ASSET_EXTENSIONS = [
 ];
 
 const DEFAULT_CACHE_CONTROL = "public, max-age=3600";
+
+const defaultAssets: AssetsFetcher = {
+  fetch: (req) => {
+    const url = req instanceof URL ? req : new URL(req);
+    return fetch(url.href);
+  },
+};
 
 function shouldSkip(
   pathname: string,
@@ -66,14 +74,27 @@ function buildMarkdownHeaders(
   return headers;
 }
 
+async function fetchMd(
+  assets: AssetsFetcher,
+  origin: string,
+  mdPathname: string
+): Promise<Response | null> {
+  try {
+    const res = await assets.fetch(new URL(mdPathname, origin));
+    return res.ok ? res : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Creates a Netlify Edge Function handler that transparently serves
+ * Creates a Netlify Edge Function worker that transparently serves
  * pre-built `.md` files to AI bots while passing all other traffic through
  * to `context.next()`.
  */
-export function createAEOHandler(
-  options: CreateAEOHandlerOptions = {},
-): (request: Request, context: Context) => Promise<Response> {
+export function createAEOWorker(
+  options: CreateAEOWorkerOptions = {},
+): (request: Request, context: NetlifyContext) => Promise<Response> {
   const skipPrefixes = options.skip?.prefixes ?? DEFAULT_SKIP_PREFIXES;
   const skipExtensions = options.skip?.extensions ?? DEFAULT_ASSET_EXTENSIONS;
   const internalRedirects = options.redirects?.internal ?? {};
@@ -81,13 +102,14 @@ export function createAEOHandler(
   const trailingSlash = options.trailingSlash ?? "never";
   const cacheControl = options.headers?.cacheControl ?? DEFAULT_CACHE_CONTROL;
   const enableLinkHeader = options.enableLinkHeader !== false;
-  
+  const assets = options.assets ?? defaultAssets;
+
   const onAIRequest = options.hooks?.onAIRequest;
   const onMiss = options.hooks?.onMiss;
-  
-  return async function aeoHandler(
+
+  return async function aeoWorker(
     request: Request,
-    context: Context,
+    context: NetlifyContext,
   ): Promise<Response> {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -117,23 +139,18 @@ export function createAEOHandler(
     }
 
     if (pathname.endsWith(".md") && !shouldSkip(pathname, skipPrefixes, skipExtensions)) {
-      let assetResponse: Response | null = null;
-      try {
-        assetResponse = await context.next();
-      } catch {
-        assetResponse = null;
-      }
-      if (assetResponse && assetResponse.ok) {
-        const body = await assetResponse.text();
+      const assetRes = await fetchMd(assets, url.origin, pathname);
+      if (assetRes) {
+        const body = await assetRes.text();
         return new Response(body, {
           status: 200,
           headers: buildMarkdownHeaders(body, cacheControl),
         });
       }
-      return assetResponse ?? new Response("Not Found", { status: 404 });
+      return new Response("Not Found", { status: 404 });
     }
 
-    if (!pathname.endsWith(".md") && !shouldSkip(pathname, skipPrefixes, skipExtensions)) {
+    if (!shouldSkip(pathname, skipPrefixes, skipExtensions)) {
       const ua = request.headers.get("user-agent") ?? "";
       const accept = request.headers.get("accept") ?? "";
       const bot = detectAIBot(ua);
@@ -152,18 +169,12 @@ export function createAEOHandler(
         );
       }
 
-      const serveMarkdown = bot.isBot || fmt === "markdown";
+      if (bot.isBot || fmt === "markdown") {
+        const mdPathname = toMarkdownPath(pathname);
+        const assetRes = await fetchMd(assets, url.origin, mdPathname);
 
-      if (serveMarkdown) {
-        let assetResponse: Response | null = null;
-        try {
-          assetResponse = await context.next();
-        } catch {
-          assetResponse = null;
-        }
-
-        if (assetResponse && assetResponse.ok) {
-          const body = await assetResponse.text();
+        if (assetRes) {
+          const body = await assetRes.text();
           const tokens = estimateTokens(body);
           const info: AIRequestInfo = {
             url,
@@ -184,28 +195,24 @@ export function createAEOHandler(
         const cleanPath = normalizePath(pathname);
         const internalTarget = internalRedirects[cleanPath];
         if (internalTarget) {
-          try {
-            const targetResp = await context.next();
-            if (targetResp.ok) {
-              const body = await targetResp.text();
-              const tokens = estimateTokens(body);
-              const info: AIRequestInfo = {
-                url,
-                botName: bot.name,
-                botVendor: bot.vendor,
-                acceptHeader: accept,
-                pathname,
-                cacheStatus: "hit",
-                tokens,
-              };
-              if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
-              return new Response(body, {
-                status: 200,
-                headers: buildMarkdownHeaders(body, cacheControl, cleanPath, internalTarget),
-              });
-            }
-          } catch {
-            // fall through to external check
+          const targetRes = await fetchMd(assets, url.origin, toMarkdownPath(internalTarget));
+          if (targetRes) {
+            const body = await targetRes.text();
+            const tokens = estimateTokens(body);
+            const info: AIRequestInfo = {
+              url,
+              botName: bot.name,
+              botVendor: bot.vendor,
+              acceptHeader: accept,
+              pathname,
+              cacheStatus: "hit",
+              tokens,
+            };
+            if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
+            return new Response(body, {
+              status: 200,
+              headers: buildMarkdownHeaders(body, cacheControl, cleanPath, internalTarget)
+            });
           }
         }
 

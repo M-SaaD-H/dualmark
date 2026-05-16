@@ -1,6 +1,6 @@
-export { createAEOHandler } from "./worker.js";
+export { createAEOWorker } from "./worker.js";
 export type {
-  CreateAEOHandlerOptions,
+  CreateAEOWorkerOptions,
   AssetsFetcher,
   NetlifyContext,
   AIRequestInfo,

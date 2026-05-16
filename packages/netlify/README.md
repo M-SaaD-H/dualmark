@@ -14,9 +14,9 @@ Create a Netlify Edge Function that runs on all paths:
 
 ```ts
 // netlify/edge-functions/aeo.ts
-import { createAEOHandler } from "@dualmark/netlify";
+import { createAEOWorker } from "@dualmark/netlify";
 
-export default createAEOHandler({
+export default createAEOWorker({
   redirects: {
     internal: { "/old-path": "/new-path" },
     external: { "/login": "https://app.example.com" },

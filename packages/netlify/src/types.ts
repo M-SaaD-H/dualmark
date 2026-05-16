@@ -18,8 +18,8 @@ export interface NetlifyContext {
   ip?: string;
 }
 
-/** Options accepted by {@link createAEOHandler}. */
-export interface CreateAEOHandlerOptions {
+/** Options accepted by {@link createAEOWorker}. */
+export interface CreateAEOWorkerOptions {
   assets?: AssetsFetcher;
   redirects?: {
     internal?: Record<string, string>;

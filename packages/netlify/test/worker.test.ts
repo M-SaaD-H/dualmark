@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createAEOHandler } from "../src/index.js";
+import { createAEOWorker } from "../src/index.js";
 import type { AssetsFetcher, NetlifyContext } from "../src/types.js";
 
 // ---------------------------------------------------------------------------
@@ -18,12 +18,12 @@ function makeAssets(files: Record<string, string>): AssetsFetcher {
 }
 
 function makeContext(
-  originHandler: (req?: Request) => Response | Promise<Response> = () =>
+  originworker: (req?: Request) => Response | Promise<Response> = () =>
     new Response("<html>ok</html>", { headers: { "Content-Type": "text/html" } }),
 ): NetlifyContext & { promises: Promise<unknown>[] } {
   const promises: Promise<unknown>[] = [];
   return {
-    next: async (req?: Request) => originHandler(req),
+    next: async (req?: Request) => originworker(req),
     waitUntil: (p) => {
       promises.push(p);
     },
@@ -37,7 +37,7 @@ function makeContext(
 // Markdown serving
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — markdown serving", () => {
+describe("createAEOWorker — markdown serving", () => {
   let assets: AssetsFetcher;
 
   beforeEach(() => {
@@ -48,11 +48,11 @@ describe("createAEOHandler — markdown serving", () => {
   });
 
   it("serves markdown to AI bot UA on existing path", async () => {
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/blog/post-1", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("text/markdown; charset=utf-8");
     expect(res.headers.get("x-markdown-tokens")).toBe("4");
@@ -63,21 +63,21 @@ describe("createAEOHandler — markdown serving", () => {
   });
 
   it("serves markdown when Accept: text/markdown (no bot UA)", async () => {
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/blog/post-1", {
       headers: { accept: "text/markdown" },
     });
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("text/markdown; charset=utf-8");
   });
 
   it("returns 406 when Accept rules out html and markdown", async () => {
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/blog/post-1", {
       headers: { accept: "image/png" },
     });
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(406);
     expect(res.headers.get("vary")).toBe("Accept");
   });
@@ -87,7 +87,7 @@ describe("createAEOHandler — markdown serving", () => {
       (_req?: Request) =>
         new Response("<html>x</html>", { headers: { "Content-Type": "text/html" } }),
     );
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const ctx = makeContext(originMock);
     const req = new Request("https://acme.test/blog/post-1", {
       headers: {
@@ -95,7 +95,7 @@ describe("createAEOHandler — markdown serving", () => {
         accept: "text/html,*/*;q=0.8",
       },
     });
-    const res = await handler(req, ctx);
+    const res = await worker(req, ctx);
     expect(originMock).toHaveBeenCalledOnce();
     expect(res.status).toBe(200);
     const link = res.headers.get("link") ?? "";
@@ -111,30 +111,30 @@ describe("createAEOHandler — markdown serving", () => {
           headers: { "Content-Type": "text/html" },
         }),
     );
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const ctx = makeContext(originMock);
     const req = new Request("https://acme.test/blog/missing", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    const res = await handler(req, ctx);
+    const res = await worker(req, ctx);
     expect(originMock).toHaveBeenCalledOnce();
     expect(res.status).toBe(404);
   });
 
   it("serves index.md for root path", async () => {
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
     expect(await res.text()).toBe("# Home\n\nWelcome.");
   });
 
   it("decorates direct .md requests with full AEO headers from assets", async () => {
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/blog/post-1.md");
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("text/markdown; charset=utf-8");
     expect(res.headers.get("X-Markdown-Tokens")).toMatch(/^\d+$/);
@@ -146,9 +146,9 @@ describe("createAEOHandler — markdown serving", () => {
   });
 
   it("returns 404 for direct .md request when asset missing", async () => {
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/missing.md");
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(404);
   });
 });
@@ -157,12 +157,12 @@ describe("createAEOHandler — markdown serving", () => {
 // Trailing slash
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — trailing slash", () => {
+describe("createAEOWorker — trailing slash", () => {
   it("redirects /path/ → /path with 301 by default", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/blog/");
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(301);
     expect(res.headers.get("location")).toBe("https://acme.test/blog");
   });
@@ -172,17 +172,17 @@ describe("createAEOHandler — trailing slash", () => {
     const originMock = vi.fn(
       (_req?: Request) => new Response("ok", { headers: { "Content-Type": "text/html" } }),
     );
-    const handler = createAEOHandler({ assets, trailingSlash: "preserve" });
-    const res = await handler(new Request("https://acme.test/blog/"), makeContext(originMock));
+    const worker = createAEOWorker({ assets, trailingSlash: "preserve" });
+    const res = await worker(new Request("https://acme.test/blog/"), makeContext(originMock));
     expect(res.status).toBe(200);
     expect(originMock).toHaveBeenCalledOnce();
   });
 
   it("redirects /path → /path/ with mode=always", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets, trailingSlash: "always" });
+    const worker = createAEOWorker({ assets, trailingSlash: "always" });
     const req = new Request("https://acme.test/blog");
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(301);
     expect(res.headers.get("location")).toBe("https://acme.test/blog/");
   });
@@ -192,7 +192,7 @@ describe("createAEOHandler — trailing slash", () => {
 // Redirects
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — redirects", () => {
+describe("createAEOWorker — redirects", () => {
   let assets: AssetsFetcher;
 
   beforeEach(() => {
@@ -200,14 +200,14 @@ describe("createAEOHandler — redirects", () => {
   });
 
   it("follows internal redirect for AI bot to canonical .md", async () => {
-    const handler = createAEOHandler({
+    const worker = createAEOWorker({
       assets,
       redirects: { internal: { "/old-path": "/new-path" } },
     });
     const req = new Request("https://acme.test/old-path", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
     expect(res.headers.get("x-redirect-from")).toBe("/old-path");
     expect(res.headers.get("x-redirect-to")).toBe("/new-path");
@@ -215,14 +215,14 @@ describe("createAEOHandler — redirects", () => {
   });
 
   it("returns markdown notice for external redirect", async () => {
-    const handler = createAEOHandler({
+    const worker = createAEOWorker({
       assets,
       redirects: { external: { "/login": "https://app.example.com" } },
     });
     const req = new Request("https://acme.test/login", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("text/markdown; charset=utf-8");
     expect(res.headers.get("x-redirect-to")).toBe("https://app.example.com");
@@ -234,15 +234,15 @@ describe("createAEOHandler — redirects", () => {
 // Skip rules
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — skip rules", () => {
+describe("createAEOWorker — skip rules", () => {
   it("skips /api/ paths entirely", async () => {
     const assets = makeAssets({});
     const originMock = vi.fn((_req?: Request) => new Response("api"));
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/api/foo", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    const res = await handler(req, makeContext(originMock));
+    const res = await worker(req, makeContext(originMock));
     expect(originMock).toHaveBeenCalledOnce();
     expect(res.status).toBe(200);
   });
@@ -252,19 +252,19 @@ describe("createAEOHandler — skip rules", () => {
     const originMock = vi.fn(
       (_req?: Request) => new Response(".css", { headers: { "Content-Type": "text/css" } }),
     );
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/style.css", {
       headers: { "user-agent": "GPTBot/1.0" },
     });
-    await handler(req, makeContext(originMock));
+    await worker(req, makeContext(originMock));
     expect(originMock).toHaveBeenCalledOnce();
   });
 
   it("does not inject Link header on non-html responses", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/data");
-    const res = await handler(
+    const res = await worker(
       req,
       makeContext(() => new Response("{}", { headers: { "Content-Type": "application/json" } })),
     );
@@ -276,13 +276,13 @@ describe("createAEOHandler — skip rules", () => {
 // Hooks
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — hooks", () => {
+describe("createAEOWorker — hooks", () => {
   it("calls onAIRequest on hit", async () => {
     const onAIRequest = vi.fn();
     const assets = makeAssets({ "/p.md": "# p" });
-    const handler = createAEOHandler({ assets, hooks: { onAIRequest } });
+    const worker = createAEOWorker({ assets, hooks: { onAIRequest } });
     const ctx = makeContext();
-    await handler(
+    await worker(
       new Request("https://acme.test/p", { headers: { "user-agent": "GPTBot/1.0" } }),
       ctx,
     );
@@ -297,9 +297,9 @@ describe("createAEOHandler — hooks", () => {
   it("calls onMiss on cache miss", async () => {
     const onMiss = vi.fn();
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets, hooks: { onMiss } });
+    const worker = createAEOWorker({ assets, hooks: { onMiss } });
     const ctx = makeContext(() => new Response("404", { status: 404 }));
-    await handler(
+    await worker(
       new Request("https://acme.test/q", { headers: { "user-agent": "GPTBot/1.0" } }),
       ctx,
     );
@@ -310,13 +310,13 @@ describe("createAEOHandler — hooks", () => {
   it("calls onAIRequest for internal redirect hit", async () => {
     const onAIRequest = vi.fn();
     const assets = makeAssets({ "/new.md": "# New" });
-    const handler = createAEOHandler({
+    const worker = createAEOWorker({
       assets,
       redirects: { internal: { "/old": "/new" } },
       hooks: { onAIRequest },
     });
     const ctx = makeContext();
-    await handler(
+    await worker(
       new Request("https://acme.test/old", { headers: { "user-agent": "GPTBot/1.0" } }),
       ctx,
     );
@@ -328,13 +328,13 @@ describe("createAEOHandler — hooks", () => {
   it("calls onAIRequest for external redirect", async () => {
     const onAIRequest = vi.fn();
     const assets = makeAssets({});
-    const handler = createAEOHandler({
+    const worker = createAEOWorker({
       assets,
       redirects: { external: { "/ext": "https://example.com" } },
       hooks: { onAIRequest },
     });
     const ctx = makeContext();
-    await handler(
+    await worker(
       new Request("https://acme.test/ext", { headers: { "user-agent": "GPTBot/1.0" } }),
       ctx,
     );
@@ -347,11 +347,11 @@ describe("createAEOHandler — hooks", () => {
 // Link header injection
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — Link header injection", () => {
+describe("createAEOWorker — Link header injection", () => {
   it("preserves existing Link header values", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
-    const res = await handler(
+    const worker = createAEOWorker({ assets });
+    const res = await worker(
       new Request("https://acme.test/page"),
       makeContext(
         () =>
@@ -370,8 +370,8 @@ describe("createAEOHandler — Link header injection", () => {
 
   it("can be disabled via enableLinkHeader=false", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets, enableLinkHeader: false });
-    const res = await handler(
+    const worker = createAEOWorker({ assets, enableLinkHeader: false });
+    const res = await worker(
       new Request("https://acme.test/page"),
       makeContext(
         () => new Response("<html></html>", { headers: { "Content-Type": "text/html" } }),
@@ -382,8 +382,8 @@ describe("createAEOHandler — Link header injection", () => {
 
   it("appends Accept to existing Vary header", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
-    const res = await handler(
+    const worker = createAEOWorker({ assets });
+    const res = await worker(
       new Request("https://acme.test/page"),
       makeContext(
         () =>
@@ -398,8 +398,8 @@ describe("createAEOHandler — Link header injection", () => {
 
   it("does not duplicate Accept in Vary when already present", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
-    const res = await handler(
+    const worker = createAEOWorker({ assets });
+    const res = await worker(
       new Request("https://acme.test/page"),
       makeContext(
         () =>
@@ -418,23 +418,23 @@ describe("createAEOHandler — Link header injection", () => {
 // Default options / edge cases
 // ---------------------------------------------------------------------------
 
-describe("createAEOHandler — default options", () => {
+describe("createAEOWorker — default options", () => {
   it("works with zero options (uses global fetch via assets fallback)", async () => {
-    // Create handler without any options — the global fetch fallback is used.
+    // Create worker without any options — the global fetch fallback is used.
     // We inject assets to avoid making real network requests in tests.
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/page");
     // Should not throw — falls through to context.next()
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(200);
   });
 
   it("does not inject Link header on .md paths", async () => {
     const assets = makeAssets({ "/doc.md": "# Doc" });
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/doc.md");
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     // Direct .md serve — no Link header
     expect(res.headers.get("link")).toBeNull();
     expect(res.headers.get("content-type")).toBe("text/markdown; charset=utf-8");
@@ -442,9 +442,9 @@ describe("createAEOHandler — default options", () => {
 
   it("passes query string through on trailing slash redirect", async () => {
     const assets = makeAssets({});
-    const handler = createAEOHandler({ assets });
+    const worker = createAEOWorker({ assets });
     const req = new Request("https://acme.test/blog/?ref=twitter");
-    const res = await handler(req, makeContext());
+    const res = await worker(req, makeContext());
     expect(res.status).toBe(301);
     expect(res.headers.get("location")).toBe("https://acme.test/blog?ref=twitter");
   });

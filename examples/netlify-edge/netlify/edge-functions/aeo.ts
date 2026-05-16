@@ -1,5 +1,5 @@
 /**
- * Netlify Edge Function — AEO adapter entrypoint.
+ * Netlify Edge Function: AEO adapter entrypoint.
  *
  * Architecture:
  *   - Astro builds to ./dist/ as static HTML + .md twins
@@ -8,15 +8,20 @@
  *   - AI bots and Accept: text/markdown clients receive markdown
  *   - All other traffic falls through via context.next() to the static site
  */
-import { createAEOHandler } from "@dualmark/netlify";
-import type { AIRequestInfo, MissInfo } from "@dualmark/netlify"
+import { createAEOWorker } from "@dualmark/netlify";
+import type { AIRequestInfo, MissInfo } from "@dualmark/netlify";
 
-export default createAEOHandler({
+export default createAEOWorker({
+  assets: {
+    fetch: (req: URL | string) => {
+      const url = req instanceof URL ? req : new URL(req);
+      return fetch(url.href);
+    },
+  },
   trailingSlash: "never",
   enableLinkHeader: true,
   hooks: {
     onAIRequest: (info: AIRequestInfo) => {
-      // Hooks run inside the request lifecycle — keep them cheap.
       console.log(
         `[dualmark] ai-hit bot=${info.botName ?? "?"} path=${info.pathname} cache=${info.cacheStatus} tokens=${info.tokens}`,
       );
@@ -27,7 +32,7 @@ export default createAEOHandler({
   },
 });
 
-export const config = { 
+export const config = {
   path: "/*",
   excludedPath: [
     "/*.md",
