@@ -6,11 +6,10 @@ import {
 } from "@dualmark/core";
 import type {
   AIRequestInfo,
-  AssetsFetcher,
   CreateAEOHandlerOptions,
   MissInfo,
-  NetlifyContext,
 } from "./types.js";
+import type { Context } from "@netlify/edge-functions";
 
 const DEFAULT_SKIP_PREFIXES = ["/admin", "/api/", "/_"];
 const DEFAULT_ASSET_EXTENSIONS = [
@@ -32,11 +31,6 @@ const DEFAULT_ASSET_EXTENSIONS = [
 ];
 
 const DEFAULT_CACHE_CONTROL = "public, max-age=3600";
-
-/** Global fetch wrapper that satisfies the {@link AssetsFetcher} interface. */
-const globalFetcher: AssetsFetcher = {
-  fetch: (url) => fetch(url),
-};
 
 function shouldSkip(
   pathname: string,
@@ -79,7 +73,7 @@ function buildMarkdownHeaders(
  */
 export function createAEOHandler(
   options: CreateAEOHandlerOptions = {},
-): (request: Request, context: NetlifyContext) => Promise<Response> {
+): (request: Request, context: Context) => Promise<Response> {
   const skipPrefixes = options.skip?.prefixes ?? DEFAULT_SKIP_PREFIXES;
   const skipExtensions = options.skip?.extensions ?? DEFAULT_ASSET_EXTENSIONS;
   const internalRedirects = options.redirects?.internal ?? {};
@@ -87,14 +81,13 @@ export function createAEOHandler(
   const trailingSlash = options.trailingSlash ?? "never";
   const cacheControl = options.headers?.cacheControl ?? DEFAULT_CACHE_CONTROL;
   const enableLinkHeader = options.enableLinkHeader !== false;
-  const assets = options.assets ?? globalFetcher;
-
+  
   const onAIRequest = options.hooks?.onAIRequest;
   const onMiss = options.hooks?.onMiss;
-
+  
   return async function aeoHandler(
     request: Request,
-    context: NetlifyContext,
+    context: Context,
   ): Promise<Response> {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -126,7 +119,7 @@ export function createAEOHandler(
     if (pathname.endsWith(".md") && !shouldSkip(pathname, skipPrefixes, skipExtensions)) {
       let assetResponse: Response | null = null;
       try {
-        assetResponse = await assets.fetch(new URL(pathname, url.origin));
+        assetResponse = await context.next();
       } catch {
         assetResponse = null;
       }
@@ -162,11 +155,9 @@ export function createAEOHandler(
       const serveMarkdown = bot.isBot || fmt === "markdown";
 
       if (serveMarkdown) {
-        const mdPath = toMarkdownPath(pathname);
-        const assetUrl = new URL(mdPath, url.origin);
         let assetResponse: Response | null = null;
         try {
-          assetResponse = await assets.fetch(assetUrl);
+          assetResponse = await context.next();
         } catch {
           assetResponse = null;
         }
@@ -193,9 +184,8 @@ export function createAEOHandler(
         const cleanPath = normalizePath(pathname);
         const internalTarget = internalRedirects[cleanPath];
         if (internalTarget) {
-          const targetMd = toMarkdownPath(internalTarget);
           try {
-            const targetResp = await assets.fetch(new URL(targetMd, url.origin));
+            const targetResp = await context.next();
             if (targetResp.ok) {
               const body = await targetResp.text();
               const tokens = estimateTokens(body);

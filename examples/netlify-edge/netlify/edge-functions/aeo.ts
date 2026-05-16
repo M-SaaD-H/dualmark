@@ -27,5 +27,11 @@ export default createAEOHandler({
   },
 });
 
-// Run on every path
-export const config = { path: "/*" };
+export const config = { 
+  path: "/*",
+  excludedPath: [
+    "/*.md",
+    "/_astro/*",
+    "/favicon.*"
+  ]
+};
