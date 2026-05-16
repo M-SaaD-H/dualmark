@@ -1,4 +1,4 @@
-export { createAEOHandler } from "./handler.js";
+export { createAEOHandler } from "./worker.js";
 export type {
   CreateAEOHandlerOptions,
   AssetsFetcher,
