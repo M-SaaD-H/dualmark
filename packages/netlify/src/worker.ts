@@ -6,6 +6,7 @@ import {
 } from "@dualmark/core";
 import type {
   AIRequestInfo,
+  AnalyticsEngineDataset,
   AssetsFetcher,
   CreateAEOWorkerOptions,
   MissInfo,
@@ -74,6 +75,26 @@ function buildMarkdownHeaders(
   return headers;
 }
 
+function countryFromContext(context: NetlifyContext): string {
+  return context.geo?.country?.code ?? "unknown";
+}
+
+function trackAnalytics(
+  dataset: AnalyticsEngineDataset | undefined,
+  info: AIRequestInfo,
+  request: Request,
+  country: string,
+): void {
+  if (!dataset || typeof dataset.writeDataPoint !== "function") return;
+  const indexKey = info.botName ?? "accept:text/markdown";
+  const ua = (request.headers.get("user-agent") ?? "unknown").slice(0, 256);
+  dataset.writeDataPoint({
+    indexes: [indexKey],
+    blobs: [indexKey, info.pathname, country, info.cacheStatus, ua],
+    doubles: [info.tokens, 1],
+  });
+}
+
 async function fetchMd(
   assets: AssetsFetcher,
   origin: string,
@@ -101,6 +122,7 @@ export function createAEOWorker(
   const externalRedirects = options.redirects?.external ?? {};
   const trailingSlash = options.trailingSlash ?? "never";
   const cacheControl = options.headers?.cacheControl ?? DEFAULT_CACHE_CONTROL;
+  const analyticsDataset = options.analytics?.dataset;
   const enableLinkHeader = options.enableLinkHeader !== false;
   const assets = options.assets ?? defaultAssets;
 
@@ -185,6 +207,7 @@ export function createAEOWorker(
             cacheStatus: "hit",
             tokens,
           };
+          trackAnalytics(analyticsDataset, info, request, countryFromContext(context));
           if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
           return new Response(body, {
             status: 200,
@@ -208,6 +231,7 @@ export function createAEOWorker(
               cacheStatus: "hit",
               tokens,
             };
+            trackAnalytics(analyticsDataset, info, request, countryFromContext(context));
             if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
             return new Response(body, {
               status: 200,
@@ -229,6 +253,7 @@ export function createAEOWorker(
             cacheStatus: "hit",
             tokens,
           };
+          trackAnalytics(analyticsDataset, info, request, countryFromContext(context));
           if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
           return new Response(body, {
             status: 200,
@@ -242,6 +267,16 @@ export function createAEOWorker(
           pathname,
           acceptHeader: accept,
         };
+        const missAnalytics: AIRequestInfo = {
+          url,
+          botName: bot.name,
+          botVendor: bot.vendor,
+          acceptHeader: accept,
+          pathname,
+          cacheStatus: "miss",
+          tokens: 0,
+        };
+        trackAnalytics(analyticsDataset, missAnalytics, request, countryFromContext(context));
         if (onMiss) context.waitUntil(Promise.resolve(onMiss(missInfo)));
       }
     }
