@@ -19,3 +19,6 @@ coverage/
 .pnpm-store/
 .bun/
 tmp/
+
+# Local Netlify folder
+.netlify
