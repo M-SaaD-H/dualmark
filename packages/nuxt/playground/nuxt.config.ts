@@ -5,4 +5,7 @@ export default defineNuxtConfig({
   modules: [DualmarkNuxt],
   devtools: { enabled: true },
   compatibilityDate: 'latest',
+  dualmark: {
+    siteUrl: 'http://localhost:3000'
+  }
 })
