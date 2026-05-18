@@ -95,6 +95,25 @@ export function CloudflareLogo({ size = 24, ...props }: LogoProps) {
   );
 }
 
+export function NuxtLogo({ size = 24, ...props }: LogoProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 256 256"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="Nuxt"
+      {...props}
+    >
+      <path
+        d="M178.5 137.9l-49.8-82.5c-3.7-6.2-12.7-6.2-16.4 0l-91.8 152.1c-3.9 6.5.8 14.9 8.4 14.9h182.2c7.6 0 12.3-8.4 8.4-14.9l-41-69.6z"
+        fill="#00DC82"
+      />
+    </svg>
+  );
+}
+
 export function SvelteLogo({ size = 24, ...props }: LogoProps) {
   return (
     <svg
