@@ -26,18 +26,10 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       addServerPlugin(resolver.resolve('./runtime/server/plugin'));
     }
 
-    addTemplate({
-      filename: 'dualmark/config.mjs',
-      getContents: () => `export default ${JSON.stringify(
-        {
-          siteUrl: resolved.siteUrl,
-          cacheControl: resolved.headers.cacheControl,
-          noindex: resolved.headers.noindex,
-        },
-        null,
-        2,
-      )};\n`,
-      write: true,
+    const dualmarkConfigStr = JSON.stringify({
+      siteUrl: resolved.siteUrl,
+      cacheControl: resolved.headers?.cacheControl,
+      noindex: resolved.headers?.noindex,
     });
 
     const routesInjected: string[] = [];
@@ -58,6 +50,16 @@ const getCollection = async (event, name, filter) => {
   let entries = docs.map(doc => {
     // Attempt to extract slug from _path
     const id = doc._path ? doc._path.replace(new RegExp('^/' + name + '/?'), '') : doc.title || '';
+    
+    // Normalize date fields into Date objects for converters
+    const rawDate = doc.publishedDate || doc.pubDate || doc.date;
+    if (rawDate) {
+      doc.publishedDate = new Date(rawDate);
+    }
+    if (doc.modifiedDate) {
+      doc.modifiedDate = new Date(doc.modifiedDate);
+    }
+
     return {
       id,
       data: doc,
@@ -70,10 +72,10 @@ const getCollection = async (event, name, filter) => {
 `;
 
       const detailSource = `
-import { resolveBuiltInConverter } from "@dualmark/nuxt/converter-registry";
-import { makeCollectionDetailEndpoint } from "@dualmark/nuxt/endpoints/collection";
+import { resolveBuiltInConverter } from ${JSON.stringify(resolver.resolve('./runtime/server/converter-registry'))};
+import { makeCollectionDetailEndpoint } from ${JSON.stringify(resolver.resolve('./runtime/server/endpoints/collection'))};
 ${getCollectionCode}
-import dualmarkConfig from "./config.mjs";
+const dualmarkConfig = ${dualmarkConfigStr};
 
 const converter = resolveBuiltInConverter({
   name: ${JSON.stringify(c.converter)},
@@ -83,6 +85,7 @@ const converter = resolveBuiltInConverter({
 
 export default makeCollectionDetailEndpoint({
   collectionName: ${JSON.stringify(collectionName)},
+  basePath: ${JSON.stringify("/" + route)},
   converter,
   getCollection,
   responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex },
@@ -95,8 +98,9 @@ export default makeCollectionDetailEndpoint({
         write: true,
       });
 
-      // Nitro supports /:slug router params
-      const detailPattern = `/${route}/:slug.md`; // Using :slug since h3 uses :param syntax instead of [param]
+      // Nitro supports /** for catch-all routes
+      const slugSeg = c.slugStrategy === "single" ? "/:slug" : "/**";
+      const detailPattern = `/${route}${slugSeg}`;
       addServerHandler({
         route: detailPattern,
         handler: detailFile.dst,
@@ -105,9 +109,9 @@ export default makeCollectionDetailEndpoint({
 
       if (c.emitListing !== false) {
         const listingSource = `
-import { makeListingEndpoint } from "@dualmark/nuxt/endpoints/listing";
+import { makeListingEndpoint } from ${JSON.stringify(resolver.resolve('./runtime/server/endpoints/listing'))};
 ${getCollectionCode}
-import dualmarkConfig from "./config.mjs";
+const dualmarkConfig = ${dualmarkConfigStr};
 
 export default makeListingEndpoint({
   collectionName: ${JSON.stringify(collectionName)},
@@ -145,8 +149,8 @@ export default makeListingEndpoint({
         write: true,
       });
       const source = `
-import { makeStaticEndpoint } from "@dualmark/nuxt/endpoints/static";
-import dualmarkConfig from "./config.mjs";
+import { makeStaticEndpoint } from ${JSON.stringify(resolver.resolve('./runtime/server/endpoints/static'))};
+const dualmarkConfig = ${dualmarkConfigStr};
 import render from "./static-${i}-${safe}-render";
 
 export default makeStaticEndpoint({
@@ -180,8 +184,8 @@ export default makeStaticEndpoint({
         write: true,
       });
       const source = `
-import { makeParameterizedEndpoint } from "@dualmark/nuxt/endpoints/parameterized";
-import dualmarkConfig from "./config.mjs";
+import { makeParameterizedEndpoint } from ${JSON.stringify(resolver.resolve('./runtime/server/endpoints/parameterized'))};
+const dualmarkConfig = ${dualmarkConfigStr};
 import render from "./param-${i}-${safe}-render";
 import getStaticPaths from "./param-${i}-${safe}-paths";
 
@@ -208,7 +212,7 @@ export default makeParameterizedEndpoint({
     if (resolved.llmsTxt?.enabled) {
       const sections = resolved.llmsTxt.sections ?? [];
       const source = `
-import { makeLlmsTxtEndpoint } from "@dualmark/nuxt/endpoints/llms-txt";
+import { makeLlmsTxtEndpoint } from ${JSON.stringify(resolver.resolve('./runtime/server/endpoints/llms-txt'))};
 
 export default makeLlmsTxtEndpoint({
   brandName: ${JSON.stringify(resolved.llmsTxt.brandName ?? "Site")},

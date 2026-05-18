@@ -17,5 +17,5 @@ export function makeParameterizedEndpoint(
     const params = getRouterParams(event);
     const body = await args.render({ params }, event);
     return markdownResponse(body, args.responseOptions);
-  };
+  });
 }

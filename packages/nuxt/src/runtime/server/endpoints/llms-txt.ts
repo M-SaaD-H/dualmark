@@ -18,5 +18,5 @@ export function makeLlmsTxtEndpoint(args: LlmsTxtEndpointArgs): EventHandler<Res
         "Cache-Control": "public, max-age=3600",
       },
     });
-  };
+  });
 }

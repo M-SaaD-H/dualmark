@@ -5,6 +5,7 @@ import { defineEventHandler, getRouterParam, type H3Event, type EventHandler } f
 
 export interface CollectionEndpointArgs<TEntry extends CollectionEntry<unknown>> {
   collectionName: string;
+  basePath: string;
   converter: Converter<TEntry>;
   getCollection: (
     event: H3Event,
@@ -19,7 +20,15 @@ export function makeCollectionDetailEndpoint<TEntry extends CollectionEntry<unkn
   args: CollectionEndpointArgs<TEntry>,
 ): EventHandler<Response> {
   return defineEventHandler(async (event: H3Event) => {
-    const slug = getRouterParam(event, "slug") || getRouterParam(event, "_");
+    const path = event.path.split('?')[0];
+    if (!path || !path.endsWith('.md')) return; // Fall-through for HTML requests
+    
+    // Extract slug by removing the basePath prefix and .md suffix
+    // Example: path = "/blog/post-1.md", basePath = "/blog" -> slug = "post-1"
+    const prefix = args.basePath.endsWith('/') ? args.basePath : args.basePath + '/';
+    if (!path.startsWith(prefix)) return;
+    
+    const slug = path.slice(prefix.length, -3);
     if (!slug) return new Response("Not Found", { status: 404 });
     const entries = await args.getCollection(event, args.collectionName, args.filter);
     const entry = entries.find((e) => e.id === slug);
@@ -28,5 +37,5 @@ export function makeCollectionDetailEndpoint<TEntry extends CollectionEntry<unkn
     }
     const md = args.converter(entry);
     return markdownResponse(md, args.responseOptions);
-  };
+  })
 }

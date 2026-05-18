@@ -49,5 +49,5 @@ export function makeListingEndpoint<TEntry extends CollectionEntry<unknown>>(
       items,
     });
     return markdownResponse(md, args.responseOptions);
-  };
+  })
 }

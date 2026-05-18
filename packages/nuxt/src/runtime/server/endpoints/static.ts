@@ -11,5 +11,5 @@ export function makeStaticEndpoint(args: StaticEndpointArgs): EventHandler<Respo
   return defineEventHandler(async (event: H3Event) => {
     const body = await args.render(event);
     return markdownResponse(body, args.responseOptions);
-  };
+  });
 }
