@@ -20,11 +20,15 @@ export interface StatusPageIncident {
   summary: string;
 }
 
-export interface StatusPageConverterConfig extends BaseConverterConfig {}
+export interface StatusPageConverterConfig extends BaseConverterConfig {
+  /** Collection URL prefix (e.g. `/status`). Set automatically by framework adapters. */
+  basePath?: string;
+}
 
 export interface StatusPageEntryData {
   title: string;
-  url: string;
+  /** Canonical status page URL. When omitted or blank, defaults to `siteUrl + basePath + / + entry.id`. */
+  url?: string;
   overall: StatusPageOverallStatus;
   components: StatusPageComponent[];
   incidents?: StatusPageIncident[];
@@ -72,6 +76,14 @@ export function statusPageConverter(
   return (entry) => {
     const d = entry.data;
     const overallLabel = OVERALL_LABEL[d.overall];
+    const basePathTrim = config.basePath?.replace(/\/$/, "") ?? "";
+    const site = config.siteUrl.replace(/\/$/, "");
+    const resolvedUrl =
+      d.url !== undefined && d.url.trim() !== ""
+        ? d.url
+        : basePathTrim
+          ? `${site}${basePathTrim.startsWith("/") ? basePathTrim : `/${basePathTrim}`}/${entry.id}`
+          : `${site}/${entry.id}`;
 
     const components = d.components.map((component) => {
       const uptime =
@@ -105,10 +117,9 @@ export function statusPageConverter(
 
     const md = joinLines(
       `# ${d.title}`,
-      `\n> ${overallLabel}`,
-      "",
+      `\n> ${overallLabel}\n`,
       `- **Overall**: ${overallLabel}`,
-      `- **URL**: ${d.url}`,
+      `- **URL**: ${resolvedUrl}`,
       "\n## Components\n\n" +
         (components.length > 0 ? components.join("\n") : "No components listed."),
       incidentsSection,

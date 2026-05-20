@@ -4,21 +4,11 @@ description: Next.js App Router adapter — withDualmark, proxy/middleware facto
 ---
 
 <Tabs items={["bun", "npm", "yarn"]}>
-<Tab value="bun">
-```bash
-bun add @dualmark/nextjs @dualmark/core @dualmark/converters
-```
-</Tab>
-<Tab value="npm">
-```bash
-npm install @dualmark/nextjs @dualmark/core @dualmark/converters
-```
-</Tab>
-<Tab value="yarn">
-```bash
-yarn add @dualmark/nextjs @dualmark/core @dualmark/converters
-```
-</Tab>
+  <Tab value="bun">```bash bun add @dualmark/nextjs @dualmark/core @dualmark/converters ```</Tab>
+  <Tab value="npm">
+    ```bash npm install @dualmark/nextjs @dualmark/core @dualmark/converters ```
+  </Tab>
+  <Tab value="yarn">```bash yarn add @dualmark/nextjs @dualmark/core @dualmark/converters ```</Tab>
 </Tabs>
 
 ## `withDualmark(nextConfig, options)`
@@ -28,10 +18,7 @@ Wrap your Next.js config. Adds the dualmark workspace packages to `transpilePack
 ```ts title="next.config.mjs"
 import { withDualmark } from "@dualmark/nextjs";
 
-export default withDualmark(
-  { reactStrictMode: true },
-  { siteUrl: "https://example.com" },
-);
+export default withDualmark({ reactStrictMode: true }, { siteUrl: "https://example.com" });
 ```
 
 ## `createDualmarkMiddleware(options)`
@@ -66,7 +53,8 @@ The middleware:
 - Adds `Link: <…>; rel="alternate"; type="text/markdown"` and `Vary: Accept` to HTML responses
 
 <Callout>
-  The matcher must be an inline literal — Next.js statically parses `export const config` and rejects imports/expressions. If you customize `internalNamespace`, replace `md/` accordingly.
+  The matcher must be an inline literal — Next.js statically parses `export const config` and
+  rejects imports/expressions. If you customize `internalNamespace`, replace `md/` accordingly.
 </Callout>
 
 ## `createDualmarkRouteHandler(options)`
@@ -93,10 +81,7 @@ const handler = createDualmarkRouteHandler({
   parameterizedRoutes: [
     {
       pattern: "/tax/[country]",
-      getStaticPaths: () => [
-        { params: { country: "us" } },
-        { params: { country: "uk" } },
-      ],
+      getStaticPaths: () => [{ params: { country: "us" } }, { params: { country: "uk" } }],
       render: ({ params }) => `# Tax: ${params.country.toUpperCase()}`,
     },
   ],
@@ -137,7 +122,7 @@ export const GET = handler.GET;
 ```ts
 interface DualmarkNextConfig {
   siteUrl: string;
-  internalNamespace?: string;          // default "md"
+  internalNamespace?: string; // default "md"
 
   collections?: Record<string, CollectionConfig>;
   staticPages?: StaticPageConfig[];
@@ -151,13 +136,13 @@ interface DualmarkNextConfig {
   };
 
   middleware?: {
-    injectLinkHeader?: boolean;        // default true
+    injectLinkHeader?: boolean; // default true
     skipPaths?: ReadonlyArray<string>; // additional path prefixes the middleware ignores
   };
 
   headers?: {
-    cacheControl?: string;             // default "public, max-age=3600"
-    noindex?: boolean;                 // default true
+    cacheControl?: string; // default "public, max-age=3600"
+    noindex?: boolean; // default true
   };
 }
 ```
@@ -170,7 +155,7 @@ collections: {
     converter:
       | "blog" | "case-study" | "changelog" | "compare" | "docs"
       | "feature" | "glossary" | "integration" | "legal" | "pricing" | "pseo"
-      | "tool" | "video"
+      | "status-page" | "tool" | "video"
       | ((entry) => string),
 
     getEntries: () => Entry[] | Promise<Entry[]>,
@@ -191,7 +176,9 @@ For each collection, the route handler emits:
 - `/<collection>` listing (unless `emitListing: false`)
 
 <Callout>
-  Unlike Astro's `astro:content`, Next.js has no built-in content discovery, so you supply `getEntries`. The function may be sync or async — read from the filesystem, a CMS, a database, anything.
+  Unlike Astro's `astro:content`, Next.js has no built-in content discovery, so you supply
+  `getEntries`. The function may be sync or async — read from the filesystem, a CMS, a database,
+  anything.
 </Callout>
 
 ### Static pages
@@ -200,7 +187,7 @@ For each collection, the route handler emits:
 staticPages: [
   { pattern: "/", render: () => "# Home\n\nWelcome." },
   { pattern: "/about", render: () => "# About" },
-]
+];
 ```
 
 Generates `/index.md` and `/about.md` (served via the `/md/index` and `/md/about` rewrites).
@@ -211,13 +198,10 @@ Generates `/index.md` and `/about.md` (served via the `/md/index` and `/md/about
 parameterizedRoutes: [
   {
     pattern: "/tax/[country]",
-    getStaticPaths: async () => [
-      { params: { country: "us" } },
-      { params: { country: "uk" } },
-    ],
+    getStaticPaths: async () => [{ params: { country: "us" } }, { params: { country: "uk" } }],
     render: ({ params }) => `# Tax in ${params.country.toUpperCase()}`,
   },
-]
+];
 ```
 
 Generates `/tax/us.md`, `/tax/uk.md`.

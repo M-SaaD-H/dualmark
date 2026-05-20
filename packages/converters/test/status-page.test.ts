@@ -42,4 +42,32 @@ describe("statusPageConverter", () => {
 
     expect(out).toMatchSnapshot();
   });
+
+  it("renders minimal entry data (no url, no incidents, no components)", () => {
+    const out = convert({
+      id: "svc",
+      data: {
+        title: "Service status",
+        overall: "operational",
+        components: [],
+      },
+    });
+
+    expect(out).toMatchSnapshot();
+  });
+
+  it("renders components with no incidents (empty incidents array)", () => {
+    const out = convert({
+      id: "platform",
+      data: {
+        title: "Platform status",
+        url: "https://status.example.com",
+        overall: "operational",
+        components: [{ name: "API", status: "operational", uptime90d: 99.9 }],
+        incidents: [],
+      },
+    });
+
+    expect(out).toMatchSnapshot();
+  });
 });
