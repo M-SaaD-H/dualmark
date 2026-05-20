@@ -83,7 +83,6 @@ export function resolveBuiltInConverter(
       return videoConverter(cfg) as Converter<CollectionEntry<unknown>>;
     default:
       throw new Error(
-<<<<<<< HEAD
         `Dualmark: unknown built-in converter '${args.name}'. Valid names: blog, case-study, changelog, compare, docs, feature, glossary, integration, legal, pricing, pseo, status-page, tool, video. Or pass a function.`,
       );
   }
