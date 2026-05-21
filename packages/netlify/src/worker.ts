@@ -161,15 +161,15 @@ export function createAEOWorker(
     }
 
     if (pathname.endsWith(".md") && !shouldSkip(pathname, skipPrefixes, skipExtensions)) {
-      const assetRes = await fetchMd(assets, url.origin, pathname);
-      if (assetRes) {
-        const body = await assetRes.text();
-        return new Response(body, {
-          status: 200,
-          headers: buildMarkdownHeaders(body, cacheControl),
-        });
+      const originRes = await context.next();
+      if (!originRes.ok) {
+        return new Response("Not Found", { status: 404 });
       }
-      return new Response("Not Found", { status: 404 });
+      const body = await originRes.text();
+      return new Response(body, {
+        status: 200,
+        headers: buildMarkdownHeaders(body, cacheControl),
+      });
     }
 
     if (!shouldSkip(pathname, skipPrefixes, skipExtensions)) {

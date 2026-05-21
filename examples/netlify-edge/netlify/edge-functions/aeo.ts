@@ -5,6 +5,8 @@
  *   - Astro builds to ./dist/ as static HTML + .md twins
  *   - Netlify serves the dist/ directory as static files
  *   - This edge function intercepts all requests before they reach the static files
+ *   - .md twin requests are served directly by the worker (works at any path depth,
+ *     in both local dev and production)
  *   - AI bots and Accept: text/markdown clients receive markdown
  *   - All other traffic falls through via context.next() to the static site
  */
@@ -12,12 +14,6 @@ import { createAEOWorker } from "@dualmark/netlify";
 import type { AIRequestInfo, MissInfo } from "@dualmark/netlify";
 
 export default createAEOWorker({
-  assets: {
-    fetch: (req: URL | string) => {
-      const url = req instanceof URL ? req : new URL(req);
-      return fetch(url.href);
-    },
-  },
   trailingSlash: "never",
   enableLinkHeader: true,
   hooks: {
@@ -32,11 +28,4 @@ export default createAEOWorker({
   },
 });
 
-export const config = {
-  path: "/*",
-  excludedPath: [
-    "/*.md",
-    "/_astro/*",
-    "/favicon.*"
-  ]
-};
+export const config = { path: "/*" };
