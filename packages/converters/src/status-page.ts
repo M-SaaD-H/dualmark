@@ -99,7 +99,7 @@ export function statusPageConverter(
       const key: IncidentGroup = incident.resolved ? "resolved" : "ongoing";
       const list = grouped.get(key) ?? [];
       const date = formatIncidentDate(incident.date);
-      list.push(`- **${incident.title}** (${date}) -- ${incident.summary}`);
+      list.push(`- **${incident.title}** (${date}): ${incident.summary}`);
       grouped.set(key, list);
     }
 
@@ -109,7 +109,7 @@ export function statusPageConverter(
       for (const key of INCIDENT_ORDER) {
         const items = grouped.get(key);
         if (items && items.length > 0) {
-          sections.push(`\n### ${INCIDENT_HEADING[key]}\n\n${items.join("\n")}`);
+          sections.push(`\n\n### ${INCIDENT_HEADING[key]}\n\n${items.join("\n")}`);
         }
       }
       incidentsSection = `\n## Incidents${sections.join("")}`;

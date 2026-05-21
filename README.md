@@ -51,10 +51,10 @@ export default defineConfig({
     dualmark({
       siteUrl: "https://yourcompany.com",
       collections: {
-        blog: { converter: "blog" }, // /blog/*.md auto-generated
-        glossary: { converter: "glossary" }, // /glossary/*.md auto-generated
+        blog: { converter: "blog" },           // /blog/*.md auto-generated
+        glossary: { converter: "glossary" },   // /glossary/*.md auto-generated
       },
-      llmsTxt: { enabled: true }, // /llms.txt auto-generated
+      llmsTxt: { enabled: true },              // /llms.txt auto-generated
     }),
   ],
 });
@@ -133,14 +133,14 @@ export default createAEOWorker({
 
 You already invested in SEO. Now invest in AEO — for **a fraction of the effort**.
 
-| Problem                                   | Without Dualmark                                                          | With Dualmark                                                                                         |
-| ----------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **AI cites competitors instead of you**   | Bots scrape your HTML, get nav menus + JS errors, pick the cleaner source | Same URL serves clean markdown to bots, polished HTML to humans                                       |
-| **No way to know if you're discoverable** | "We hope ChatGPT can read this"                                           | `dualmark verify` returns a 0–125 score with line-item failures                                       |
-| **`llms.txt` proposal keeps changing**    | Hand-maintained, drifts from sitemap                                      | Auto-generated from the same config that drives your routes                                           |
-| **Every team rebuilds this**              | Custom middleware in every repo, none of them quite right                 | One battle-tested package, conforms to a public spec                                                  |
-| **No analytics for AI traffic**           | "Was that a bot or a human?"                                              | `onAIRequest` hook + Cloudflare Analytics Engine integration: bot name, vendor, page, tokens, country |
-| **Slow to roll out across pages**         | Marketing waits weeks for engineering                                     | Add `converter: "compare"` to a collection — done. 14 converters bundled.                             |
+| Problem | Without Dualmark | With Dualmark |
+|---|---|---|
+| **AI cites competitors instead of you** | Bots scrape your HTML, get nav menus + JS errors, pick the cleaner source | Same URL serves clean markdown to bots, polished HTML to humans |
+| **No way to know if you're discoverable** | "We hope ChatGPT can read this" | `dualmark verify` returns a 0–125 score with line-item failures |
+| **`llms.txt` proposal keeps changing** | Hand-maintained, drifts from sitemap | Auto-generated from the same config that drives your routes |
+| **Every team rebuilds this** | Custom middleware in every repo, none of them quite right | One battle-tested package, conforms to a public spec |
+| **No analytics for AI traffic** | "Was that a bot or a human?" | `onAIRequest` hook + Cloudflare Analytics Engine integration: bot name, vendor, page, tokens, country |
+| **Slow to roll out across pages** | Marketing waits weeks for engineering | Add `converter: "compare"` to a collection — done. Production-tested converters bundled. |
 
 **Built and battle-tested at [Dodo Payments](https://dodopayments.com)** for our own marketing site. Now extracted as OSS so you don't have to write the same content negotiation, bot detection, and edge wrapping over and over.
 
@@ -155,7 +155,6 @@ yourcompany.com/llms.txt            ← AI agents discover everything
 ```
 
 Same URL. Same content. Different rendering. Picked automatically by:
-
 - `Accept: text/markdown` header → markdown
 - Known AI bot User-Agent (GPTBot, ClaudeBot, PerplexityBot, +21 more) → markdown
 - Direct `.md` URL → markdown
@@ -167,24 +166,24 @@ No duplicate content penalties (markdown twin sets `X-Robots-Tag: noindex`). No 
 
 ## Built-in converters (`@dualmark/converters`)
 
-Drop-in markdown generation for the 14 page types every marketing site has:
+Drop-in markdown generation for the page types every marketing site has:
 
-| Converter     | What it's for                  | Marketing examples                                       |
-| ------------- | ------------------------------ | -------------------------------------------------------- |
-| `blog`        | Long-form posts                | Engineering blog, customer stories                       |
-| `case-study`  | Customer wins                  | Logos with stats and pull-quote                          |
-| `changelog`   | Release notes                  | "What's new in v1.4" with grouped changes                |
-| `compare`     | Us vs. competitor              | "Stripe alternative" pages                               |
-| `docs`        | Documentation                  | Getting started, API guides                              |
-| `feature`     | Product/feature pages          | "Webhooks", "SSO" — problem/solution + FAQ               |
-| `glossary`    | Term definitions               | "What is a payment gateway?"                             |
-| `integration` | App marketplace / integrations | "Connect Stripe to Acme", Slack connector pages          |
-| `legal`       | Policy pages                   | Terms, Privacy, DPA                                      |
-| `pricing`     | Pricing tables                 | Tier comparison with CTAs                                |
-| `pseo`        | Programmatic SEO               | "SEO services in San Francisco" with facts + cross-links |
-| `status-page` | Uptime / status                | Public component health + incidents                      |
-| `tool`        | Standalone calculators         | "Currency converter"                                     |
-| `video`       | Video landing pages            | Webinar replays                                          |
+| Converter | What it's for | Marketing examples |
+|---|---|---|
+| `blog` | Long-form posts | Engineering blog, customer stories |
+| `case-study` | Customer wins | Logos with stats and pull-quote |
+| `changelog` | Release notes | "What's new in v1.4" with grouped changes |
+| `compare` | Us vs. competitor | "Stripe alternative" pages |
+| `docs` | Documentation | Getting started, API guides |
+| `feature` | Product/feature pages | "Webhooks", "SSO" — problem/solution + FAQ |
+| `glossary` | Term definitions | "What is a payment gateway?" |
+| `integration` | App marketplace / integrations | "Connect Stripe to Acme", Slack connector pages |
+| `legal` | Policy pages | Terms, Privacy, DPA |
+| `pricing` | Pricing tables | Tier comparison with CTAs |
+| `pseo` | Programmatic SEO | "SEO services in San Francisco" with facts + cross-links |
+| `status-page` | Uptime / status | Public component health + incidents |
+| `tool` | Standalone calculators | "Currency converter" |
+| `video` | Video landing pages | Webinar replays |
 
 Each converter takes your collection entry → returns clean markdown with the right structure for AI consumption (title, description, breadcrumbs, FAQ extraction, related links). No prompt engineering required.
 
@@ -196,7 +195,7 @@ const convert = compareConverter({
   basePath: "/compare",
 });
 
-const md = convert(yourComparePage); // → battle-tested markdown layout
+const md = convert(yourComparePage);  // → battle-tested markdown layout
 ```
 
 ---
@@ -239,14 +238,14 @@ Three conformance levels — **Basic** (60%), **Standard** (80%), **Advanced** (
 
 ## What's in the box
 
-| Package                                         | npm                          | Size  | What it does                                                                                                                                                                                                |
-| ----------------------------------------------- | ---------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@dualmark/core`](./packages/core)             | `npm i @dualmark/core`       | 14 KB | Framework-agnostic primitives: content negotiation (RFC 7231), AI-bot detection (24 known bots), markdown response builder, token estimation, composition helpers, `llms.txt` rendering. Zero runtime deps. |
-| [`@dualmark/converters`](./packages/converters) | `npm i @dualmark/converters` | 16 KB | 14 production-tested converter factories.                                                                                                                                                                   |
-| [`@dualmark/astro`](./packages/astro)           | `npm i @dualmark/astro`      | 22 KB | Astro 5 integration. Auto-generates `.md` endpoints, ships middleware, generates `llms.txt`.                                                                                                                |
-| [`@dualmark/nextjs`](./packages/nextjs)         | `npm i @dualmark/nextjs`     | 15 KB | Next.js App Router adapter. `withDualmark()`, `createDualmarkMiddleware()`, `createDualmarkRouteHandler()`, `createLlmsTxtHandler()`.                                                                       |
-| [`@dualmark/cloudflare`](./packages/cloudflare) | `npm i @dualmark/cloudflare` | 9 KB  | Workers edge adapter. Wraps any upstream Worker. Hooks for analytics + telemetry.                                                                                                                           |
-| [`@dualmark/cli`](./packages/cli)               | `npm i -g @dualmark/cli`     | 16 KB | `dualmark verify <url>`. Programmatic API too.                                                                                                                                                              |
+| Package | npm | Size | What it does |
+|---|---|---|---|
+| [`@dualmark/core`](./packages/core) | `npm i @dualmark/core` | 14 KB | Framework-agnostic primitives: content negotiation (RFC 7231), AI-bot detection (24 known bots), markdown response builder, token estimation, composition helpers, `llms.txt` rendering. Zero runtime deps. |
+| [`@dualmark/converters`](./packages/converters) | `npm i @dualmark/converters` | 16 KB | Production-tested converter factories. |
+| [`@dualmark/astro`](./packages/astro) | `npm i @dualmark/astro` | 22 KB | Astro 5 integration. Auto-generates `.md` endpoints, ships middleware, generates `llms.txt`. |
+| [`@dualmark/nextjs`](./packages/nextjs) | `npm i @dualmark/nextjs` | 15 KB | Next.js App Router adapter. `withDualmark()`, `createDualmarkMiddleware()`, `createDualmarkRouteHandler()`, `createLlmsTxtHandler()`. |
+| [`@dualmark/cloudflare`](./packages/cloudflare) | `npm i @dualmark/cloudflare` | 9 KB | Workers edge adapter. Wraps any upstream Worker. Hooks for analytics + telemetry. |
+| [`@dualmark/cli`](./packages/cli) | `npm i -g @dualmark/cli` | 16 KB | `dualmark verify <url>`. Programmatic API too. |
 
 Plus:
 
@@ -259,19 +258,19 @@ Plus:
 
 ## End-to-end verified
 
-| Surface                          | Status                                                      |
-| -------------------------------- | ----------------------------------------------------------- |
-| `@dualmark/core`                 | 174 tests pass (vitest + fast-check property tests)         |
-| `@dualmark/converters`           | 28 tests pass                                               |
-| `@dualmark/cloudflare`           | 23 tests pass                                               |
-| `@dualmark/cli`                  | 17 tests pass                                               |
-| `@dualmark/astro`                | 36 tests pass                                               |
-| `@dualmark/nextjs`               | 47 tests pass                                               |
-| `examples/astro-blog`            | **80/80** under `astro dev` (`--skip-negotiation`)          |
+| Surface | Status |
+|---|---|
+| `@dualmark/core` | 174 tests pass (vitest + fast-check property tests) |
+| `@dualmark/converters` | 28 tests pass |
+| `@dualmark/cloudflare` | 23 tests pass |
+| `@dualmark/cli` | 17 tests pass |
+| `@dualmark/astro` | 35 tests pass |
+| `@dualmark/nextjs` | 47 tests pass |
+| `examples/astro-blog` | **80/80** under `astro dev` (`--skip-negotiation`) |
 | `examples/astro-cloudflare-full` | **125/125 perfect** under `wrangler dev` (full negotiation) |
-| `examples/nextjs-app-router`     | **120/125** under `next dev` (now using `@dualmark/nextjs`) |
-| `apps/docs`                      | 26 routes prerendered, all serve 200                        |
-| `/play` route                    | Live at dualmark.dev/play, integrated into the docs app     |
+| `examples/nextjs-app-router` | **120/125** under `next dev` (now using `@dualmark/nextjs`) |
+| `apps/docs` | 26 routes prerendered, all serve 200 |
+| `/play` route | Live at dualmark.dev/play, integrated into the docs app |
 
 ```bash
 bun install

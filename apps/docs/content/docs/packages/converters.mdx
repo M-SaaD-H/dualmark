@@ -1,34 +1,46 @@
 ---
 title: "@dualmark/converters"
-description: 14 production-tested markdown converter factories.
+description: Production-tested markdown converter factories.
 ---
 
 <Tabs items={["bun", "npm", "yarn"]}>
-  <Tab value="bun">```bash bun add @dualmark/converters @dualmark/core ```</Tab>
-  <Tab value="npm">```bash npm install @dualmark/converters @dualmark/core ```</Tab>
-  <Tab value="yarn">```bash yarn add @dualmark/converters @dualmark/core ```</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/converters @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/converters @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/converters @dualmark/core
+```
+</Tab>
 </Tabs>
 
 Each factory takes a config object and returns `(entry: CollectionEntry<Data>) => string`.
 
 ## Available converters
 
-| Factory                | Domain                                                                    |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `blogConverter`        | Blog posts                                                                |
-| `caseStudyConverter`   | Case studies (with stats + customer quote)                                |
-| `changelogConverter`   | Release notes (Keep-a-Changelog grouping)                                 |
-| `compareConverter`     | Comparison pages (us vs. competitor table)                                |
-| `docsConverter`        | Documentation pages                                                       |
-| `featureConverter`     | Feature/product pages with siblings, FAQ, problem/solution                |
-| `glossaryConverter`    | Glossary terms (with learn-more + canonical-blog)                         |
+| Factory | Domain |
+| --- | --- |
+| `blogConverter` | Blog posts |
+| `caseStudyConverter` | Case studies (with stats + customer quote) |
+| `changelogConverter` | Release notes (Keep-a-Changelog grouping) |
+| `compareConverter` | Comparison pages (us vs. competitor table) |
+| `docsConverter` | Documentation pages |
+| `featureConverter` | Feature/product pages with siblings, FAQ, problem/solution |
+| `glossaryConverter` | Glossary terms (with learn-more + canonical-blog) |
 | `integrationConverter` | Marketplace / app integration listings (vendor, categories, capabilities) |
-| `legalConverter`       | Legal pages                                                               |
-| `pricingConverter`     | Pricing tables with tier highlights and CTAs                              |
-| `pseoConverter`        | Programmatic SEO pages with facts + related-link groups                   |
-| `statusPageConverter`  | Public status / uptime pages (components + incidents)                     |
-| `toolConverter`        | Standalone tools                                                          |
-| `videoConverter`       | Video pages                                                               |
+| `legalConverter` | Legal pages |
+| `pricingConverter` | Pricing tables with tier highlights and CTAs |
+| `pseoConverter` | Programmatic SEO pages with facts + related-link groups |
+| `statusPageConverter` | Public status / uptime pages (components + incidents) |
+| `toolConverter` | Standalone tools |
+| `videoConverter` | Video pages |
 
 ## Common shape
 
@@ -59,8 +71,8 @@ const md = convert({
 
 ```ts
 interface BaseConverterConfig {
-  siteUrl: string; // required, used for absolute URLs
-  brandFooter?: string; // appended to every output
+  siteUrl: string;        // required, used for absolute URLs
+  brandFooter?: string;   // appended to every output
 }
 ```
 

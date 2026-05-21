@@ -16,13 +16,15 @@ exports[`statusPageConverter > renders a realistic status page snapshot 1`] = `
 - **Billing**: partial outage (90d uptime 98.88%)
 
 ## Incidents
+
 ### Ongoing incidents
 
-- **Intermittent 5xx responses** (2026-05-08) -- We are investigating elevated error rates on API writes.
+- **Intermittent 5xx responses** (2026-05-08): We are investigating elevated error rates on API writes.
+
 ### Resolved incidents
 
-- **Scheduled database maintenance** (2026-05-02) -- Maintenance completed; replicas are healthy.
-- **Billing webhook delays** (2026-04-25) -- Queue backlog cleared and processing is stable.
+- **Scheduled database maintenance** (2026-05-02): Maintenance completed; replicas are healthy.
+- **Billing webhook delays** (2026-04-25): Queue backlog cleared and processing is stable.
 
 ---"
 `;

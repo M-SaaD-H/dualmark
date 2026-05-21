@@ -4,9 +4,21 @@ description: Astro 5 integration — auto-generated .md routes, middleware, llms
 ---
 
 <Tabs items={["bun", "npm", "yarn"]}>
-  <Tab value="bun">```bash bun add @dualmark/astro @dualmark/core @dualmark/converters ```</Tab>
-  <Tab value="npm">```bash npm install @dualmark/astro @dualmark/core @dualmark/converters ```</Tab>
-  <Tab value="yarn">```bash yarn add @dualmark/astro @dualmark/core @dualmark/converters ```</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
 </Tabs>
 
 ## `dualmark(config)`
@@ -18,11 +30,7 @@ import { defineConfig } from "astro/config";
 import dualmark from "@dualmark/astro";
 
 export default defineConfig({
-  integrations: [
-    dualmark({
-      /* config */
-    }),
-  ],
+  integrations: [dualmark({ /* config */ })],
 });
 ```
 
@@ -60,7 +68,7 @@ collections: {
     converter: "blog" | "case-study" | "changelog" | "compare" | "docs"
           | "feature" | "glossary" | "integration" | "legal" | "pricing" | "pseo"
           | "status-page" | "tool" | "video"
-          | ((entry) => string),  // or custom function
+              | ((entry) => string),  // or custom function
 
     slugStrategy?: "single" | "nested",  // single = /blog/<slug>, nested = /blog/<...>
 

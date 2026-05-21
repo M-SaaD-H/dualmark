@@ -38,11 +38,21 @@ app/
 ## Install
 
 <Tabs items={["bun", "npm", "yarn"]}>
-  <Tab value="bun">```bash bun add @dualmark/nextjs @dualmark/core @dualmark/converters ```</Tab>
-  <Tab value="npm">
-    ```bash npm install @dualmark/nextjs @dualmark/core @dualmark/converters ```
-  </Tab>
-  <Tab value="yarn">```bash yarn add @dualmark/nextjs @dualmark/core @dualmark/converters ```</Tab>
+<Tab value="bun">
+```bash
+bun add @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
 </Tabs>
 
 ## next.config.mjs
@@ -84,8 +94,7 @@ export const config = {
 _On Next.js ≤15, name the file `middleware.ts` instead. Body is identical._
 
 <Callout>
-  The `matcher` source must be an inline literal — Next.js parses `export const config` statically
-  and rejects imports/expressions. If you customize `internalNamespace`, replace `md/` accordingly.
+  The `matcher` source must be an inline literal — Next.js parses `export const config` statically and rejects imports/expressions. If you customize `internalNamespace`, replace `md/` accordingly.
 </Callout>
 
 ## app/md/[...path]/route.ts
@@ -165,12 +174,12 @@ Expect **120/125** under `next dev` (full Standard conformance).
 
 If you wired `@dualmark/core` into Next.js by hand before `@dualmark/nextjs` shipped, the migration is mechanical:
 
-| Before (`@dualmark/core` only)                                                                       | After (`@dualmark/nextjs`)                                                               |
-| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Hand-rolled `proxy.ts`/`middleware.ts` with `detectAIBot` + `negotiateFormat` + manual rewrite logic | `createDualmarkMiddleware({ siteUrl })`                                                  |
-| Hand-rolled `app/md/[...path]/route.ts` with `if`-chains over the joined path                        | `createDualmarkRouteHandler({ siteUrl, collections, staticPages, parameterizedRoutes })` |
-| Hand-rolled `app/llms.txt/route.ts` calling `renderLlmsTxt`                                          | `createLlmsTxtHandler({ brandName, sections })`                                          |
-| Manual `transpilePackages: ["@dualmark/core", ...]`                                                  | `withDualmark(nextConfig, options)`                                                      |
+| Before (`@dualmark/core` only) | After (`@dualmark/nextjs`) |
+|---|---|
+| Hand-rolled `proxy.ts`/`middleware.ts` with `detectAIBot` + `negotiateFormat` + manual rewrite logic | `createDualmarkMiddleware({ siteUrl })` |
+| Hand-rolled `app/md/[...path]/route.ts` with `if`-chains over the joined path | `createDualmarkRouteHandler({ siteUrl, collections, staticPages, parameterizedRoutes })` |
+| Hand-rolled `app/llms.txt/route.ts` calling `renderLlmsTxt` | `createLlmsTxtHandler({ brandName, sections })` |
+| Manual `transpilePackages: ["@dualmark/core", ...]` | `withDualmark(nextConfig, options)` |
 
 The internal namespace, response headers, and conformance score are unchanged. The reference example (`examples/nextjs-app-router`) is the canonical migration — it went from ~120 lines hand-rolled to ~50 lines with the adapter, same 120/125 score.
 

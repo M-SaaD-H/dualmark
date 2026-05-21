@@ -40,9 +40,7 @@ describe("blogConverter", () => {
     expect(out).toContain("- **Published**: 2026-05-01");
     expect(out).toContain("- **URL**: https://acme.test/blog/first-post");
     expect(out).toContain("Hello world.");
-    expect(out).toContain(
-      "[More engineering articles](https://acme.test/blog/category/engineering)",
-    );
+    expect(out).toContain("[More engineering articles](https://acme.test/blog/category/engineering)");
     expect(out).toContain("[All articles](https://acme.test/blog)");
   });
 
@@ -613,7 +611,7 @@ describe("docsConverter", () => {
 });
 
 describe("BUILT_IN_CONVERTERS export", () => {
-  it("lists all 13 generic built-in names in alphabetical order", () => {
+  it("lists all built-in names in alphabetical order", () => {
     expect(BUILT_IN_CONVERTERS).toEqual([
       "blog",
       "case-study",
