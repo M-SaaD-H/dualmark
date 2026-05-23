@@ -4,4 +4,7 @@ export default defineNuxtConfig({
   modules: [
     MyModule,
   ],
+  dualmark: {
+    siteUrl: 'https://example.com',
+  },
 })
