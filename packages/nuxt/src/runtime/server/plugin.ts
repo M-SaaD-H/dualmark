@@ -26,7 +26,7 @@ export default defineNitroPlugin((nitroApp) => {
     const pathname: string =
       event.url instanceof URL
         ? event.url.pathname
-        : (event as any).path ?? (event.node?.req as any)?.url ?? '/';
+        : event.path ?? event.node?.req?.url ?? '/';
 
     if (pathname.endsWith('.md')) return;
 

@@ -1,10 +1,14 @@
-import MyModule from '../../../src/module'
+import dualmark from '../../../src/module'
+import { defineNuxtConfig } from 'nuxt/config'
+import type { NuxtConfig } from '@nuxt/schema'
 
-export default defineNuxtConfig({
+const config: NuxtConfig = defineNuxtConfig({
   modules: [
-    MyModule,
+    dualmark,
   ],
   dualmark: {
     siteUrl: 'https://example.com',
   },
 })
+
+export default config

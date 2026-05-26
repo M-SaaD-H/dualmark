@@ -1,13 +1,12 @@
 {
-  "name": "nuxt-blog",
+  "name": "dualmark-example-nuxt-blog",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt prepare && nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "preview": "nuxt preview"
   },
   "dependencies": {
     "@nuxt/content": "^2.13.2",

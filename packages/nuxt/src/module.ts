@@ -23,7 +23,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
     }
 
     // Always register the server plugin for Link + Vary header injection on HTML responses.
-    addServerPlugin(resolver.resolve('./runtime/server/plugin'));
+    addServerPlugin(resolver.resolve('./runtime/server/plugin.ts'));
 
     const dualmarkConfigStr = JSON.stringify({
       siteUrl: resolved.siteUrl,
@@ -35,7 +35,8 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
     const prerenderRoutes: string[] = [];
 
     // Shared getCollection code (embedded in each generated file)
-    const collectionCode = getCollectionCode();
+    const contentServerAlias = nuxt.options.alias['#content/server'] || '#content/server';
+    const collectionCode = getCollectionCode(contentServerAlias);
 
     // Per-collection middleware + listing route
     for (const [collectionName, c] of Object.entries(resolved.collections)) {
@@ -54,7 +55,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       //  - Regular HTML requests → return undefined (pass-through to Nuxt SSR)
       // The beforeResponse plugin then injects Link + Vary on the SSR HTML response.
       const middlewareSource = getMiddlewareCode(
-        resolver.resolve('./runtime/server/converter-registry'),
+        resolver.resolve('./runtime/server/converter-registry.ts'),
         collectionCode,
         dualmarkConfigStr,
         collectionName,
@@ -70,7 +71,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         write: true,
       });
 
-      // Register WITHOUT a route → Nitro treats it as middleware (can pass-through).
+      // Register WITHOUT a route -> Nitro treats it as middleware (can pass-through).
       addServerHandler({ handler: middlewareFile.dst });
       routesInjected.push(`middleware:/${route}/**`);
 
@@ -78,7 +79,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       // Listing is a pure .md endpoint — no HTML twin — so a route handler is fine.
       if (c.emitListing !== false) {
         const listingSource = getListingCode(
-          resolver.resolve('./runtime/server/endpoints/listing'),
+          resolver.resolve('./runtime/server/endpoints/listing.ts'),
           collectionCode,
           dualmarkConfigStr,
           collectionName,
@@ -110,7 +111,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         write: true,
       });
       const source = getStaticPageCode(
-        resolver.resolve('./runtime/server/endpoints/static'),
+        resolver.resolve('./runtime/server/endpoints/static.ts'),
         dualmarkConfigStr,
         `./static-${i}-${safe}-render`
       );
@@ -141,7 +142,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         write: true,
       });
       const source = getParameterizedRouteCode(
-        resolver.resolve('./runtime/server/endpoints/parameterized'),
+        resolver.resolve('./runtime/server/endpoints/parameterized.ts'),
         dualmarkConfigStr,
         `./param-${i}-${safe}-render`,
         `./param-${i}-${safe}-paths`
@@ -162,7 +163,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
     if (resolved.llmsTxt?.enabled) {
       const sections = resolved.llmsTxt.sections ?? [];
       const source = getLlmsTxtCode(
-        resolver.resolve('./runtime/server/endpoints/llms-txt'),
+        resolver.resolve('./runtime/server/endpoints/llms-txt.ts'),
         resolved.llmsTxt.brandName ?? 'Site',
         resolved.llmsTxt.description ?? '',
         sections
@@ -189,9 +190,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
   },
 });
 
-function getCollectionCode() {
+function getCollectionCode(contentServerAlias: string) {
   return `
-import { serverQueryContent } from '#content/server';
+import { serverQueryContent } from ${JSON.stringify(contentServerAlias)};
 const getCollection = async (event, name, filter) => {
   const docs = await serverQueryContent(event, name).find();
   let entries = docs.map(doc => {

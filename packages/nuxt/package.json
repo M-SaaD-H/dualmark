@@ -1,40 +1,45 @@
 {
   "name": "@dualmark/nuxt",
-  "version": "1.0.0",
-  "description": "Nuxt module for Dualmark",
-  "repository": "dodpayments/dualmark",
-  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Nuxt module for the Dualmark AEO framework. Auto-generates .md endpoints from collection config + injects Link rel=alternate middleware + generates llms.txt.",
+  "license": "Apache-2.0",
+  "author": "Dodo Payments <opensource@dodopayments.com> (https://dodopayments.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dodopayments/dualmark.git",
+    "directory": "packages/nuxt"
+  },
+  "bugs": {
+    "url": "https://github.com/dodopayments/dualmark/issues"
+  },
+  "homepage": "https://github.com/dodopayments/dualmark/tree/main/packages/nuxt#readme",
+  "funding": "https://github.com/sponsors/dodopayments",
   "type": "module",
+  "main": "./dist/module.cjs",
+  "module": "./dist/module.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types.d.mts",
-      "import": "./dist/module.mjs"
-    }
-  },
-  "main": "./dist/module.mjs",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "./dist/types.d.mts"
-      ]
+      "types": "./dist/index.d.ts",
+      "import": "./dist/module.js",
+      "require": "./dist/module.cjs"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
-  "workspaces": [
-    "playground"
-  ],
+  "sideEffects": false,
   "scripts": {
-    "prepack": "nuxt-module-build build",
-    "dev": "npm run dev:prepare && nuxt dev playground",
-    "dev:build": "nuxt build playground",
-    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxt prepare playground",
-    "release": "npm run lint && npm run test && npm run prepack && changelogen --release && npm publish && git push --follow-tags",
-    "lint": "eslint .",
-    "test": "vitest run && mkdir -p coverage",
-    "test:watch": "vitest watch",
-    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
+    "build": "tsup && mkdir -p dist/runtime && cp -r src/runtime/* dist/runtime/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.0.0 || ^4.0.0"
   },
   "dependencies": {
     "@dualmark/core": "workspace:*",
@@ -42,17 +47,29 @@
     "@nuxt/kit": "^4.4.5"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^3.2.4",
-    "@nuxt/eslint-config": "^1.15.2",
-    "@nuxt/module-builder": "^1.0.2",
     "@nuxt/schema": "^4.4.5",
-    "@nuxt/test-utils": "^4.0.3",
-    "@types/node": "latest",
-    "changelogen": "^0.6.2",
-    "eslint": "^10.3.0",
-    "nuxt": "^4.4.5",
-    "typescript": "~6.0.3",
-    "vitest": "^4.1.5",
-    "vue-tsc": "^3.2.8"
+    "@types/node": "^22.10.0",
+    "h3": "^2.0.1-rc.22",
+    "nitropack": "^2.13.4",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "keywords": [
+    "aeo",
+    "answer-engine-optimization",
+    "nuxt",
+    "nuxt-module",
+    "ai-search",
+    "markdown",
+    "llms-txt",
+    "dualmark"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
   }
 }
