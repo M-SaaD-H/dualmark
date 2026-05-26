@@ -33,12 +33,21 @@ export default createAEOWorker({
 export const config = { path: "/*" };
 ```
 
-## `netlify.toml` config
+## Deploy to Netlify
+
+Add the edge function routing to your `netlify.toml` to ensure it runs before your static assets are served:
 
 ```toml
 [[edge_functions]]
   function = "aeo"
   path = "/*"
+```
+
+Then, build your markdown and HTML files using your framework's standard build command before deploying. For example:
+
+```bash
+bun run build
+netlify deploy --prod
 ```
 
 ## How it works

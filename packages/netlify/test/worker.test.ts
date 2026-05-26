@@ -1,11 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createAEOWorker } from "../src/index.js";
-import type {
-  AnalyticsEngineDataset,
-  AnalyticsEngineWriteOptions,
-  AssetsFetcher,
-  NetlifyContext,
-} from "../src/types.js";
+import type { AssetsFetcher, NetlifyContext } from "../src/types.js";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -274,67 +269,6 @@ describe("createAEOWorker — skip rules", () => {
       makeContext(() => new Response("{}", { headers: { "Content-Type": "application/json" } })),
     );
     expect(res.headers.get("link")).toBeNull();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Analytics
-// ---------------------------------------------------------------------------
-
-function makeAnalytics(): {
-  ds: AnalyticsEngineDataset;
-  writes: AnalyticsEngineWriteOptions[];
-} {
-  const writes: AnalyticsEngineWriteOptions[] = [];
-  return {
-    writes,
-    ds: {
-      writeDataPoint: (e) => {
-        writes.push(e);
-      },
-    },
-  };
-}
-
-describe("createAEOWorker — analytics", () => {
-  it("writes data point on hit when dataset present", async () => {
-    const { ds, writes } = makeAnalytics();
-    const assets = makeAssets({ "/x.md": "# X" });
-    const worker = createAEOWorker({ assets, analytics: { dataset: ds } });
-    await worker(
-      new Request("https://acme.test/x", { headers: { "user-agent": "GPTBot/1.0" } }),
-      makeContext(),
-    );
-    expect(writes).toHaveLength(1);
-    const w = writes[0];
-    expect(w?.indexes).toEqual(["GPTBot"]);
-    expect(w?.blobs?.[0]).toBe("GPTBot");
-    expect(w?.blobs?.[1]).toBe("/x");
-    expect(w?.blobs?.[2]).toBe("US");
-    expect(w?.blobs?.[3]).toBe("hit");
-    expect(w?.doubles?.[0]).toBeGreaterThan(0);
-  });
-
-  it("writes miss when no .md and no redirect", async () => {
-    const { ds, writes } = makeAnalytics();
-    const assets = makeAssets({});
-    const worker = createAEOWorker({ assets, analytics: { dataset: ds } });
-    await worker(
-      new Request("https://acme.test/missing", { headers: { "user-agent": "GPTBot/1.0" } }),
-      makeContext(() => new Response("404", { status: 404 })),
-    );
-    expect(writes).toHaveLength(1);
-    expect(writes[0]?.blobs?.[3]).toBe("miss");
-  });
-
-  it("does not throw when dataset absent", async () => {
-    const assets = makeAssets({ "/x.md": "# X" });
-    const worker = createAEOWorker({ assets, analytics: {} });
-    const res = await worker(
-      new Request("https://acme.test/x", { headers: { "user-agent": "GPTBot/1.0" } }),
-      makeContext(),
-    );
-    expect(res.status).toBe(200);
   });
 });
 

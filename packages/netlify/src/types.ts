@@ -2,18 +2,8 @@ import type { AIRequestInfo, MissInfo, TrailingSlashMode } from "@dualmark/core"
 
 export type { AIRequestInfo, MissInfo, TrailingSlashMode };
 
-export interface AnalyticsEngineWriteOptions {
-  blobs?: ReadonlyArray<string>;
-  doubles?: ReadonlyArray<number>;
-  indexes?: ReadonlyArray<string>;
-}
-
-export interface AnalyticsEngineDataset {
-  writeDataPoint: (event: AnalyticsEngineWriteOptions) => void;
-}
-
 export interface AssetsFetcher {
-  fetch: (url: URL | string) => Promise<Response>;
+  fetch: (url: URL | string, init?: RequestInit) => Promise<Response>;
 }
 
 export interface NetlifyContext {
@@ -38,9 +28,6 @@ export interface CreateAEOWorkerOptions {
   skip?: {
     prefixes?: ReadonlyArray<string>;
     extensions?: ReadonlyArray<string>;
-  };
-  analytics?: {
-    dataset?: AnalyticsEngineDataset;
   };
   trailingSlash?: TrailingSlashMode;
   headers?: {

@@ -6,7 +6,6 @@ import {
 } from "@dualmark/core";
 import type {
   AIRequestInfo,
-  AnalyticsEngineDataset,
   AssetsFetcher,
   CreateAEOWorkerOptions,
   MissInfo,
@@ -33,11 +32,12 @@ const DEFAULT_ASSET_EXTENSIONS = [
 ];
 
 const DEFAULT_CACHE_CONTROL = "public, max-age=3600";
+const SUBREQUEST_HEADER = "x-dualmark-subrequest";
 
 const defaultAssets: AssetsFetcher = {
-  fetch: (req) => {
+  fetch: (req, init) => {
     const url = req instanceof URL ? req : new URL(req);
-    return fetch(url.href);
+    return fetch(url.href, init);
   },
 };
 
@@ -79,29 +79,14 @@ function countryFromContext(context: NetlifyContext): string {
   return context.geo?.country?.code ?? "unknown";
 }
 
-function trackAnalytics(
-  dataset: AnalyticsEngineDataset | undefined,
-  info: AIRequestInfo,
-  request: Request,
-  country: string,
-): void {
-  if (!dataset || typeof dataset.writeDataPoint !== "function") return;
-  const indexKey = info.botName ?? "accept:text/markdown";
-  const ua = (request.headers.get("user-agent") ?? "unknown").slice(0, 256);
-  dataset.writeDataPoint({
-    indexes: [indexKey],
-    blobs: [indexKey, info.pathname, country, info.cacheStatus, ua],
-    doubles: [info.tokens, 1],
-  });
-}
-
 async function fetchMd(
   assets: AssetsFetcher,
   origin: string,
-  mdPathname: string
+  mdPathname: string,
+  subrequestHeader?: RequestInit
 ): Promise<Response | null> {
   try {
-    const res = await assets.fetch(new URL(mdPathname, origin));
+    const res = await assets.fetch(new URL(mdPathname, origin), subrequestHeader);
     return res.ok ? res : null;
   } catch {
     return null;
@@ -122,7 +107,6 @@ export function createAEOWorker(
   const externalRedirects = options.redirects?.external ?? {};
   const trailingSlash = options.trailingSlash ?? "never";
   const cacheControl = options.headers?.cacheControl ?? DEFAULT_CACHE_CONTROL;
-  const analyticsDataset = options.analytics?.dataset;
   const enableLinkHeader = options.enableLinkHeader !== false;
   const assets = options.assets ?? defaultAssets;
 
@@ -133,6 +117,12 @@ export function createAEOWorker(
     request: Request,
     context: NetlifyContext,
   ): Promise<Response> {
+    // Subrequest passthrough - prevents infinite loops when fetchAsset
+    // calls fetch() to the same origin.
+    if (request.headers.get(SUBREQUEST_HEADER)) {
+      return context.next();
+    }
+
     const url = new URL(request.url);
     const pathname = url.pathname;
 
@@ -160,9 +150,13 @@ export function createAEOWorker(
       return new Response(null, { status: 301, headers: { Location: target.href } });
     }
 
+    const subrequestHeader: RequestInit = {
+      headers: { [SUBREQUEST_HEADER]: "1" },
+    };
+
     if (pathname.endsWith(".md") && !shouldSkip(pathname, skipPrefixes, skipExtensions)) {
-      const originRes = await context.next();
-      if (!originRes.ok) {
+      const originRes = await fetchMd(assets, url.origin, pathname, subrequestHeader);
+      if (!originRes) {
         return new Response("Not Found", { status: 404 });
       }
       const body = await originRes.text();
@@ -193,7 +187,7 @@ export function createAEOWorker(
 
       if (bot.isBot || fmt === "markdown") {
         const mdPathname = toMarkdownPath(pathname);
-        const assetRes = await fetchMd(assets, url.origin, mdPathname);
+        const assetRes = await fetchMd(assets, url.origin, mdPathname, subrequestHeader);
 
         if (assetRes) {
           const body = await assetRes.text();
@@ -207,7 +201,6 @@ export function createAEOWorker(
             cacheStatus: "hit",
             tokens,
           };
-          trackAnalytics(analyticsDataset, info, request, countryFromContext(context));
           if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
           return new Response(body, {
             status: 200,
@@ -218,7 +211,7 @@ export function createAEOWorker(
         const cleanPath = normalizePath(pathname);
         const internalTarget = internalRedirects[cleanPath];
         if (internalTarget) {
-          const targetRes = await fetchMd(assets, url.origin, toMarkdownPath(internalTarget));
+          const targetRes = await fetchMd(assets, url.origin, toMarkdownPath(internalTarget), subrequestHeader);
           if (targetRes) {
             const body = await targetRes.text();
             const tokens = estimateTokens(body);
@@ -231,7 +224,6 @@ export function createAEOWorker(
               cacheStatus: "hit",
               tokens,
             };
-            trackAnalytics(analyticsDataset, info, request, countryFromContext(context));
             if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
             return new Response(body, {
               status: 200,
@@ -253,7 +245,6 @@ export function createAEOWorker(
             cacheStatus: "hit",
             tokens,
           };
-          trackAnalytics(analyticsDataset, info, request, countryFromContext(context));
           if (onAIRequest) context.waitUntil(Promise.resolve(onAIRequest(info)));
           return new Response(body, {
             status: 200,
@@ -267,16 +258,6 @@ export function createAEOWorker(
           pathname,
           acceptHeader: accept,
         };
-        const missAnalytics: AIRequestInfo = {
-          url,
-          botName: bot.name,
-          botVendor: bot.vendor,
-          acceptHeader: accept,
-          pathname,
-          cacheStatus: "miss",
-          tokens: 0,
-        };
-        trackAnalytics(analyticsDataset, missAnalytics, request, countryFromContext(context));
         if (onMiss) context.waitUntil(Promise.resolve(onMiss(missInfo)));
       }
     }

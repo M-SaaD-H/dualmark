@@ -6,6 +6,4 @@ export type {
   AIRequestInfo,
   MissInfo,
   TrailingSlashMode,
-  AnalyticsEngineDataset,
-  AnalyticsEngineWriteOptions,
 } from "./types.js";
