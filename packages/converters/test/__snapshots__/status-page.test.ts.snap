@@ -24,9 +24,7 @@ exports[`statusPageConverter > renders a realistic status page snapshot 1`] = `
 ### Resolved incidents
 
 - **Scheduled database maintenance** (2026-05-02): Maintenance completed; replicas are healthy.
-- **Billing webhook delays** (2026-04-25): Queue backlog cleared and processing is stable.
-
----"
+- **Billing webhook delays** (2026-04-25): Queue backlog cleared and processing is stable."
 `;
 
 exports[`statusPageConverter > renders components with no incidents (empty incidents array) 1`] = `
@@ -43,9 +41,7 @@ exports[`statusPageConverter > renders components with no incidents (empty incid
 
 ## Incidents
 
-No incidents reported.
-
----"
+No incidents reported."
 `;
 
 exports[`statusPageConverter > renders minimal entry data (no url, no incidents, no components) 1`] = `
@@ -62,7 +58,5 @@ No components listed.
 
 ## Incidents
 
-No incidents reported.
-
----"
+No incidents reported."
 `;

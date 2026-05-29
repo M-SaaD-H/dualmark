@@ -261,10 +261,10 @@ Plus:
 | Surface | Status |
 |---|---|
 | `@dualmark/core` | 174 tests pass (vitest + fast-check property tests) |
-| `@dualmark/converters` | 28 tests pass |
+| `@dualmark/converters` | 31 tests pass |
 | `@dualmark/cloudflare` | 23 tests pass |
 | `@dualmark/cli` | 17 tests pass |
-| `@dualmark/astro` | 35 tests pass |
+| `@dualmark/astro` | 36 tests pass |
 | `@dualmark/nextjs` | 47 tests pass |
 | `examples/astro-blog` | **80/80** under `astro dev` (`--skip-negotiation`) |
 | `examples/astro-cloudflare-full` | **125/125 perfect** under `wrangler dev` (full negotiation) |
@@ -274,7 +274,7 @@ Plus:
 
 ```bash
 bun install
-bun run build && bun run test && bun run typecheck   # 324 tests across 6 packages
+bun run build && bun run test && bun run typecheck   # 328 tests across 6 packages
 ```
 
 ---

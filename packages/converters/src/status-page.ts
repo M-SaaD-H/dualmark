@@ -123,7 +123,7 @@ export function statusPageConverter(
       "\n## Components\n\n" +
         (components.length > 0 ? components.join("\n") : "No components listed."),
       incidentsSection,
-      "\n---",
+      entry.body && "\n---",
       entry.body && `\n${cleanBody(entry.body)}`,
       config.brandFooter && "\n---",
       config.brandFooter && `\n${config.brandFooter}`,
