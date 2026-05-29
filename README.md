@@ -140,7 +140,7 @@ You already invested in SEO. Now invest in AEO — for **a fraction of the effor
 | **`llms.txt` proposal keeps changing** | Hand-maintained, drifts from sitemap | Auto-generated from the same config that drives your routes |
 | **Every team rebuilds this** | Custom middleware in every repo, none of them quite right | One battle-tested package, conforms to a public spec |
 | **No analytics for AI traffic** | "Was that a bot or a human?" | `onAIRequest` hook + Cloudflare Analytics Engine integration: bot name, vendor, page, tokens, country |
-| **Slow to roll out across pages** | Marketing waits weeks for engineering | Add `converter: "compare"` to a collection — done. 13 converters bundled. |
+| **Slow to roll out across pages** | Marketing waits weeks for engineering | Add `converter: "compare"` to a collection — done. Production-tested converters bundled. |
 
 **Built and battle-tested at [Dodo Payments](https://dodopayments.com)** for our own marketing site. Now extracted as OSS so you don't have to write the same content negotiation, bot detection, and edge wrapping over and over.
 
@@ -166,7 +166,7 @@ No duplicate content penalties (markdown twin sets `X-Robots-Tag: noindex`). No 
 
 ## Built-in converters (`@dualmark/converters`)
 
-Drop-in markdown generation for the 13 page types every marketing site has:
+Drop-in markdown generation for the page types every marketing site has:
 
 | Converter | What it's for | Marketing examples |
 |---|---|---|
@@ -181,6 +181,7 @@ Drop-in markdown generation for the 13 page types every marketing site has:
 | `legal` | Policy pages | Terms, Privacy, DPA |
 | `pricing` | Pricing tables | Tier comparison with CTAs |
 | `pseo` | Programmatic SEO | "SEO services in San Francisco" with facts + cross-links |
+| `status-page` | Uptime / status | Public component health + incidents |
 | `tool` | Standalone calculators | "Currency converter" |
 | `video` | Video landing pages | Webinar replays |
 
@@ -240,7 +241,7 @@ Three conformance levels — **Basic** (60%), **Standard** (80%), **Advanced** (
 | Package | npm | Size | What it does |
 |---|---|---|---|
 | [`@dualmark/core`](./packages/core) | `npm i @dualmark/core` | 14 KB | Framework-agnostic primitives: content negotiation (RFC 7231), AI-bot detection (24 known bots), markdown response builder, token estimation, composition helpers, `llms.txt` rendering. Zero runtime deps. |
-| [`@dualmark/converters`](./packages/converters) | `npm i @dualmark/converters` | 16 KB | 13 production-tested converter factories. |
+| [`@dualmark/converters`](./packages/converters) | `npm i @dualmark/converters` | 16 KB | Production-tested converter factories. |
 | [`@dualmark/astro`](./packages/astro) | `npm i @dualmark/astro` | 22 KB | Astro 5 integration. Auto-generates `.md` endpoints, ships middleware, generates `llms.txt`. |
 | [`@dualmark/nextjs`](./packages/nextjs) | `npm i @dualmark/nextjs` | 15 KB | Next.js App Router adapter. `withDualmark()`, `createDualmarkMiddleware()`, `createDualmarkRouteHandler()`, `createLlmsTxtHandler()`. |
 | [`@dualmark/cloudflare`](./packages/cloudflare) | `npm i @dualmark/cloudflare` | 9 KB | Workers edge adapter. Wraps any upstream Worker. Hooks for analytics + telemetry. |
@@ -260,10 +261,10 @@ Plus:
 | Surface | Status |
 |---|---|
 | `@dualmark/core` | 174 tests pass (vitest + fast-check property tests) |
-| `@dualmark/converters` | 28 tests pass |
+| `@dualmark/converters` | 31 tests pass |
 | `@dualmark/cloudflare` | 23 tests pass |
 | `@dualmark/cli` | 17 tests pass |
-| `@dualmark/astro` | 35 tests pass |
+| `@dualmark/astro` | 36 tests pass |
 | `@dualmark/nextjs` | 47 tests pass |
 | `examples/astro-blog` | **80/80** under `astro dev` (`--skip-negotiation`) |
 | `examples/astro-cloudflare-full` | **125/125 perfect** under `wrangler dev` (full negotiation) |
@@ -273,7 +274,7 @@ Plus:
 
 ```bash
 bun install
-bun run build && bun run test && bun run typecheck   # 324 tests across 6 packages
+bun run build && bun run test && bun run typecheck   # 328 tests across 6 packages
 ```
 
 ---
