@@ -61,7 +61,7 @@ console.log(formatTextReport(report));
 // Emit the public AEO Spec v1.0 JSON contract (same shape as `--json`):
 console.log(JSON.stringify(formatJsonReportV1(report), null, 2));
 
-if (report.checks.some((c) => c.required && !c.passed)) {
+if (report.failed.some((c) => c.severity === "required")) {
   process.exit(1);
 }
 ```
@@ -73,47 +73,49 @@ if (report.checks.some((c) => c.required && !c.passed)) {
 ```ts
 interface VerifyReport {
   url: string;          // input URL (HTML)
-  markdownUrl: string;  // derived markdown URL
+  mdUrl: string;        // derived markdown URL
   score: number;        // points earned
   maxScore: number;     // total possible
-  level: "none" | "basic" | "standard" | "advanced";
   skippedNegotiation: boolean;
   durationMs: number;
-  checks: CheckResult[];
+  checks: CheckResult[]; // every check, in evaluation order
+  passed: CheckResult[]; // subset where passed === true
+  failed: CheckResult[]; // subset where passed === false
 }
 
 interface CheckResult {
   id: string;           // e.g. "md.fetch"
-  points: number;       // points awarded (0 if failed)
-  max: number;          // max points this check can award
+  description: string;  // human-readable check description
+  severity: "required" | "recommended";
   passed: boolean;
-  message: string;      // human-readable status
-  required: boolean;    // required for conformance
+  message: string;      // status / failure reason
+  weight: number;       // points this check contributes
 }
 ```
 
 ## `--json` output (AEO Spec v1.0)
 
-The `--json` flag emits the **public** v1.0 contract — a stable subset of
-`VerifyReport` with `maxScore` renamed to `max` and the per-check `required`
-field omitted. Build it programmatically with `formatJsonReportV1(report)`.
+The `--json` flag emits the **public** v1.0 contract — a stable, renamed
+projection of `VerifyReport` (`mdUrl` → `markdownUrl`, `maxScore` → `max`),
+adds a derived `level`, and flattens each check to `points`/`max`. Build it
+programmatically with `formatJsonReportV1(report)`.
 
 ```ts
-interface JsonReportV1 {
+interface VerifyJsonReportV1 {
   url: string;
-  markdownUrl: string;
+  markdownUrl: string;  // VerifyReport.mdUrl
   score: number;
-  max: number;          // total possible (VerifyReport.maxScore)
+  max: number;          // VerifyReport.maxScore
   level: "none" | "basic" | "standard" | "advanced";
   skippedNegotiation: boolean;
   durationMs: number;
-  checks: JsonCheckV1[];
+  checks: VerifyJsonCheck[];
 }
 
-interface JsonCheckV1 {
+interface VerifyJsonCheck {
   id: string;
   points: number;       // 0 when the check fails, else equal to `max`
-  max: number;
+  max: number;          // CheckResult.weight
   passed: boolean;
   message: string;
 }
