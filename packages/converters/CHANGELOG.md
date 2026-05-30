@@ -1,5 +1,11 @@
 # @dualmark/converters
 
+## 0.8.0
+
+### Minor Changes
+
+- 8e8f315: Add status page converter for uptime/status pages
+
 ## 0.7.0
 
 ### Minor Changes
