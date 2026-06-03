@@ -56,9 +56,7 @@ describe("resolveConfig", () => {
     expect(() =>
       resolveConfig({
         siteUrl: "https://example.com",
-        parameterizedRoutes: [
-          { pattern: "blog/all", getStaticPaths: () => [], render: () => "" },
-        ],
+        parameterizedRoutes: [{ pattern: "blog/all", getStaticPaths: () => [], render: () => "" }],
       }),
     ).toThrow(/must contain at least one/);
   });
@@ -78,5 +76,28 @@ describe("resolveConfig", () => {
     });
     expect(out.headers.cacheControl).toBe("no-cache");
     expect(out.headers.noindex).toBe(false);
+  });
+
+  it("appends the file path to the error message when provided", () => {
+    expect(() => resolveConfig({} as never, "/abs/astro.config.mjs")).toThrow(
+      /\[\/abs\/astro\.config\.mjs\]/,
+    );
+  });
+
+  it("does not include a bracketed prefix when filePath is omitted", () => {
+    let message = "";
+    try {
+      resolveConfig({} as never);
+    } catch (e) {
+      if (e instanceof Error) message = e.message;
+    }
+    expect(message).not.toMatch(/^\[/);
+    expect(message).toMatch(/^Dualmark config error:/);
+  });
+
+  it("produces the exact error format: [filePath] Dualmark config error: <msg>", () => {
+    expect(() => resolveConfig(null as never, "/abs/astro.config.mjs")).toThrow(
+      /^\[\/abs\/astro\.config\.mjs\] Dualmark config error: Config must be an object$/,
+    );
   });
 });
