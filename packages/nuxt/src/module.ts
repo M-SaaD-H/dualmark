@@ -65,7 +65,8 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         '/' + route,
         c.converter as string,
         c.listingMetadata?.title ?? collectionName,
-        c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.')
+        c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.'),
+        c.compareOptions
       );
 
       const middlewareFile = addTemplate({
@@ -219,10 +220,11 @@ function getMiddlewareCode(
   basePath: string,
   converterName: string,
   listingTitle: string,
-  listingDescription: string
+  listingDescription: string,
+  compareOptions?: { ourBrandColumn?: string }
 ) {
   return `
-import { defineEventHandler, getHeader, createError } from 'h3';
+import { defineEventHandler, getHeader } from 'h3';
 import { negotiateFormat, detectAIBot, toMarkdownPath, markdownResponse, listingToMarkdown } from '@dualmark/core';
 import { resolveBuiltInConverter } from ${JSON.stringify(resolverPath)};
 ${collectionCode}
@@ -232,6 +234,7 @@ const BASE_PATH = ${JSON.stringify(basePath)};
 const CONVERTER_NAME = ${JSON.stringify(converterName)};
 const LISTING_TITLE = ${JSON.stringify(listingTitle)};
 const LISTING_DESCRIPTION = ${JSON.stringify(listingDescription)};
+const COMPARE_OPTIONS = ${JSON.stringify(compareOptions)};
 
 export default defineEventHandler(async (event) => {
   const path = (event.path ?? '/').split('?')[0];
@@ -249,7 +252,7 @@ export default defineEventHandler(async (event) => {
 
   // 406: client's Accept explicitly excludes both text/html and text/markdown
   if (!isMd && format === null && !botInfo.isBot) {
-    throw createError({ statusCode: 406, statusMessage: 'Not Acceptable' });
+    return new Response('Not Acceptable', { status: 406 });
   }
 
   const serveMarkdown = isMd || botInfo.isBot || format === 'markdown';
@@ -290,17 +293,18 @@ export default defineEventHandler(async (event) => {
   const rawSlug = isMd
     ? path.slice(prefix.length, -3)   // strip prefix + .md suffix
     : path.slice(prefix.length);       // strip prefix only
-  if (!rawSlug) throw createError({ statusCode: 404, statusMessage: 'Not Found' });
+  if (!rawSlug) return new Response('Not Found', { status: 404 });
 
   const converter = resolveBuiltInConverter({
     name: CONVERTER_NAME,
     collectionName: COLLECTION_NAME,
     baseConfig: { siteUrl: dualmarkConfig.siteUrl },
+    compareOptions: COMPARE_OPTIONS,
   });
 
   const entries = await getCollection(event, COLLECTION_NAME);
   const entry = entries.find(e => e.id === rawSlug);
-  if (!entry) throw createError({ statusCode: 404, statusMessage: 'Not Found' });
+  if (!entry) return new Response('Not Found', { status: 404 });
 
   return markdownResponse(converter(entry), responseOpts);
 });

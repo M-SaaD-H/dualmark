@@ -34,6 +34,9 @@ export interface ResolveConverterArgs {
   name: string;
   collectionName: string;
   baseConfig: BaseConverterConfig;
+  compareOptions?: {
+    ourBrandColumn?: string;
+  };
 }
 
 export function resolveBuiltInConverter(
@@ -49,7 +52,10 @@ export function resolveBuiltInConverter(
     case "changelog":
       return changelogConverter(cfg) as Converter<CollectionEntry<unknown>>;
     case "compare":
-      return compareConverter({ ...cfg, ourBrandColumn: "Us" }) as Converter<CollectionEntry<unknown>>;
+      return compareConverter({
+        ...cfg,
+        ourBrandColumn: args.compareOptions?.ourBrandColumn ?? "Us",
+      }) as Converter<CollectionEntry<unknown>>;
     case "docs":
       return docsConverter(cfg) as Converter<CollectionEntry<unknown>>;
     case "feature":

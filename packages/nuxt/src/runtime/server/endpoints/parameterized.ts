@@ -1,6 +1,5 @@
 import { markdownResponse, type MarkdownResponseOptions } from "@dualmark/core";
-
-import { defineEventHandler, getRouterParams, type H3Event, type EventHandler } from "h3";
+import { defineEventHandler, getRouterParams, type H3Event } from "h3";
 
 export interface ParameterizedEndpointArgs {
   getStaticPaths: () =>
@@ -15,6 +14,16 @@ export function makeParameterizedEndpoint(
 ) {
   return defineEventHandler(async (event: H3Event) => {
     const params = getRouterParams(event);
+    
+    const validPaths = await args.getStaticPaths();
+    const isValid = validPaths.some((p) =>
+      Object.entries(p.params).every(([key, value]) => params[key] === value)
+    );
+
+    if (!isValid) {
+      return new Response("Not Found", { status: 404 });
+    }
+
     const body = await args.render({ params }, event);
     return markdownResponse(body, args.responseOptions);
   });
