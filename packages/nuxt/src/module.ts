@@ -22,8 +22,10 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       throw e;
     }
 
-    // Always register the server plugin for Link + Vary header injection on HTML responses.
-    addServerPlugin(resolver.resolve('./runtime/server/plugin.ts'));
+    // Register the server plugin for Link + Vary header injection on HTML responses.
+    if (resolved.middleware.injectLinkHeader) {
+      addServerPlugin(resolver.resolve('./runtime/server/plugin'));
+    }
 
     const dualmarkConfigStr = JSON.stringify({
       siteUrl: resolved.siteUrl,
@@ -43,8 +45,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       const route = c.route ?? collectionName;
 
       if (typeof c.converter !== 'string') {
-        console.warn(`[@dualmark/nuxt] Collection '${collectionName}' uses an inline converter function. Use a built-in converter name (e.g. 'blog').`);
-        continue;
+        throw new DualmarkConfigError(
+          `Dualmark config: collection '${collectionName}' uses an inline converter function, this isn't supported yet. Use a built-in converter name (e.g. 'blog').`
+        );
       }
 
       // Nitro middleware (no route) for content negotiation + markdown serving
@@ -55,7 +58,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       //  - Regular HTML requests → return undefined (pass-through to Nuxt SSR)
       // The beforeResponse plugin then injects Link + Vary on the SSR HTML response.
       const middlewareSource = getMiddlewareCode(
-        resolver.resolve('./runtime/server/converter-registry.ts'),
+        resolver.resolve('./runtime/server/converter-registry'),
         collectionCode,
         dualmarkConfigStr,
         collectionName,
@@ -79,7 +82,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       // Listing is a pure .md endpoint, no HTML twin, so a route handler is fine.
       if (c.emitListing !== false) {
         const listingSource = getListingCode(
-          resolver.resolve('./runtime/server/endpoints/listing.ts'),
+          resolver.resolve('./runtime/server/endpoints/listing'),
           collectionCode,
           dualmarkConfigStr,
           collectionName,
@@ -111,7 +114,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         write: true,
       });
       const source = getStaticPageCode(
-        resolver.resolve('./runtime/server/endpoints/static.ts'),
+        resolver.resolve('./runtime/server/endpoints/static'),
         dualmarkConfigStr,
         `./static-${i}-${safe}-render`
       );
@@ -142,7 +145,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         write: true,
       });
       const source = getParameterizedRouteCode(
-        resolver.resolve('./runtime/server/endpoints/parameterized.ts'),
+        resolver.resolve('./runtime/server/endpoints/parameterized'),
         dualmarkConfigStr,
         `./param-${i}-${safe}-render`,
         `./param-${i}-${safe}-paths`
@@ -163,7 +166,7 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
     if (resolved.llmsTxt?.enabled) {
       const sections = resolved.llmsTxt.sections ?? [];
       const source = getLlmsTxtCode(
-        resolver.resolve('./runtime/server/endpoints/llms-txt.ts'),
+        resolver.resolve('./runtime/server/endpoints/llms-txt'),
         resolved.llmsTxt.brandName ?? 'Site',
         resolved.llmsTxt.description ?? '',
         sections
