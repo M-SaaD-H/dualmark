@@ -8,7 +8,7 @@ export interface LlmsTxtEndpointArgs {
   sections: LlmsTxtSection[];
 }
 
-export function makeLlmsTxtEndpoint(args: LlmsTxtEndpointArgs): EventHandler<Response> {
+export function makeLlmsTxtEndpoint(args: LlmsTxtEndpointArgs) {
   return defineEventHandler((_event: H3Event) => {
     const body = renderLlmsTxt(args);
     return new Response(body, {
