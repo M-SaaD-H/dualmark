@@ -15,7 +15,7 @@ import type { H3Event } from 'h3';
  * place to append headers regardless of how the page was rendered.
  */
 export default defineNitroPlugin((nitroApp) => {
-  nitroApp.hooks.hook('beforeResponse', (event: H3Event) => {
+  nitroApp.hooks.hook('beforeResponse', (event) => {
     const res = event.node?.res;
     if (!res) return;
 
@@ -23,10 +23,7 @@ export default defineNitroPlugin((nitroApp) => {
       (res.getHeader('content-type') as string | undefined) ?? '';
     if (!contentType.toLowerCase().includes('text/html')) return;
 
-    const pathname: string =
-      event.url instanceof URL
-        ? event.url.pathname
-        : event.path ?? event.node?.req?.url ?? '/';
+    const pathname: string = (event.path ?? event.node?.req?.url ?? '/').split('?')[0];
 
     if (pathname.endsWith('.md')) return;
 
