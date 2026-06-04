@@ -26,8 +26,8 @@ export interface ListingEndpointArgs<TEntry extends CollectionEntry<unknown>> {
 }
 
 export function makeListingEndpoint<TEntry extends CollectionEntry<unknown>>(
-  args: ListingEndpointArgs<TEntry>,
-): EventHandler<Response> {
+  args: ListingEndpointArgs<TEntry>
+) {
   return defineEventHandler(async (event: H3Event) => {
     let entries = await args.getCollection(event, args.collectionName, args.filter);
     if (args.sort) entries = [...entries].sort(args.sort);

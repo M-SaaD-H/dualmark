@@ -12,7 +12,7 @@ export interface ParameterizedEndpointArgs {
 
 export function makeParameterizedEndpoint(
   args: ParameterizedEndpointArgs,
-): EventHandler<Response> {
+) {
   return defineEventHandler(async (event: H3Event) => {
     const params = getRouterParams(event);
     const body = await args.render({ params }, event);
