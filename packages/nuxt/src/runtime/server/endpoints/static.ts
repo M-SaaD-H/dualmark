@@ -7,7 +7,7 @@ export interface StaticEndpointArgs {
   responseOptions?: MarkdownResponseOptions;
 }
 
-export function makeStaticEndpoint(args: StaticEndpointArgs): EventHandler<Response> {
+export function makeStaticEndpoint(args: StaticEndpointArgs) {
   return defineEventHandler(async (event: H3Event) => {
     const body = await args.render(event);
     return markdownResponse(body, args.responseOptions);
