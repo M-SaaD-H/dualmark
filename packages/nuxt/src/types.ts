@@ -19,6 +19,9 @@ declare module '@nuxt/schema' {
 
 export interface CollectionConfig<TEntry = CollectionEntry<unknown>> {
   converter: string | Converter<TEntry>;
+  compareOptions?: {
+    ourBrandColumn?: string;
+  };
   route?: string;
   slugStrategy?: SlugStrategy;
   filter?: (entry: TEntry) => boolean;
