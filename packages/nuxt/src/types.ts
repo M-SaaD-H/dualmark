@@ -1,6 +1,7 @@
 import type { Converter, CollectionEntry } from "@dualmark/converters";
 import type { LlmsTxtSection } from "@dualmark/core";
-import type {} from "@nuxt/schema";
+import type { NitroConfig } from 'nitropack';
+import type {} from '@nuxt/schema';
 
 export type SlugStrategy = "catch-all" | "single";
 
@@ -12,7 +13,7 @@ declare module '@nuxt/schema' {
     dualmark?: DualmarkNuxtConfig;
   }
   interface NuxtHooks {
-    'nitro:config': (nitroConfig: { prerender?: { routes?: string[] } }) => void | Promise<void>;
+    'nitro:config': (nitroConfig: NitroConfig) => void | Promise<void>;
   }
 }
 
