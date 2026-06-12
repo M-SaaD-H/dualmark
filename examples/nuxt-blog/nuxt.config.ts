@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     '@dualmark/nuxt'
   ],
   dualmark: {
-    siteUrl: 'http://localhost:3000',
+    siteUrl: 'https://example.com',
     collections: {
       blog: {
         converter: 'blog',

@@ -26,5 +26,6 @@ export default defineConfig({
     "@nuxt/schema",
     "nuxt",
     "nitropack",
+    "h3",
   ],
 });

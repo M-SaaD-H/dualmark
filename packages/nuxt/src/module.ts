@@ -186,10 +186,10 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
     console.log(`[@dualmark/nuxt] Injected ${routesInjected.length} route(s)/middleware(s) (${middlewareCount} collection middleware(s) + 1 plugin)`);
 
     // Prerender listing and llms.txt endpoints at build time
-    nuxt.hook('nitro:config', (nitroConfig) => {
-      nitroConfig.prerender = nitroConfig.prerender || {};
-      nitroConfig.prerender.routes = nitroConfig.prerender.routes || [];
-      nitroConfig.prerender.routes.push(...prerenderRoutes);
+    nuxt.hook('prerender:routes', ({ routes }) => {
+      for (const route of prerenderRoutes) {
+        routes.add(route);
+      }
     });
   },
 });
@@ -224,7 +224,7 @@ function getMiddlewareCode(
   compareOptions?: { ourBrandColumn?: string }
 ) {
   return `
-import { defineEventHandler, getHeader } from 'h3';
+import { defineEventHandler } from 'h3';
 import { negotiateFormat, detectAIBot, toMarkdownPath, markdownResponse, listingToMarkdown } from '@dualmark/core';
 import { resolveBuiltInConverter } from ${JSON.stringify(resolverPath)};
 ${collectionCode}
@@ -245,8 +245,8 @@ export default defineEventHandler(async (event) => {
   if (!isListing && !isUnderBase) return;
 
   const isMd = path.endsWith('.md');
-  const accept = getHeader(event, 'accept') ?? '';
-  const ua = getHeader(event, 'user-agent') ?? '';
+  const accept = getRequestHeader(event, 'accept') ?? '';
+  const ua = getRequestHeader(event, 'user-agent') ?? '';
   const botInfo = detectAIBot(ua);
   const format = negotiateFormat(accept);
 

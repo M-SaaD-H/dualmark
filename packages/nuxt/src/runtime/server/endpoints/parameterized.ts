@@ -12,11 +12,15 @@ export interface ParameterizedEndpointArgs {
 export function makeParameterizedEndpoint(
   args: ParameterizedEndpointArgs,
 ) {
+  let cachedPaths: Array<{ params: Record<string, string> }> | undefined;
+
   return defineEventHandler(async (event: H3Event) => {
     const params = getRouterParams(event);
-    
-    const validPaths = await args.getStaticPaths();
-    const isValid = validPaths.some((p) =>
+
+    if (!cachedPaths) {
+      cachedPaths = await args.getStaticPaths();
+    }
+    const isValid = cachedPaths.some((p) =>
       Object.entries(p.params).every(([key, value]) => params[key] === value)
     );
 

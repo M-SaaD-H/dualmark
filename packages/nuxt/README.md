@@ -73,7 +73,7 @@ export default defineNuxtConfig({
 
 ## Built-in converter names
 
-`blog`, `case-study`, `changelog`, `compare`, `docs`, `feature`, `glossary`, `legal`, `pricing`, `pseo`, `status-page`, `tool`, `video`
+`blog`, `case-study`, `changelog`, `compare`, `docs`, `feature`, `glossary`, `legal`, `pricing`, `pseo`, `tool`, `video`
 
 Pass any string from this list as `converter`. Inline converter functions are currently not supported in Nuxt as they cannot be serialized into generated templates (planned for a future release).
 

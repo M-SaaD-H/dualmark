@@ -1,6 +1,5 @@
 import type { Converter, CollectionEntry } from "@dualmark/converters";
 import type { LlmsTxtSection } from "@dualmark/core";
-import type { NitroConfig } from 'nitropack';
 import type {} from '@nuxt/schema';
 
 export type SlugStrategy = "catch-all" | "single";
@@ -11,9 +10,6 @@ declare module '@nuxt/schema' {
   }
   interface NuxtOptions {
     dualmark?: DualmarkNuxtConfig;
-  }
-  interface NuxtHooks {
-    'nitro:config': (nitroConfig: NitroConfig) => void | Promise<void>;
   }
 }
 

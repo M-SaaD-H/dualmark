@@ -1,4 +1,4 @@
-import { defineEventHandler } from 'h3';
+import { defineEventHandler, getRequestHeader } from 'h3';
 import { negotiateFormat, detectAIBot, markdownResponse, listingToMarkdown } from '@dualmark/core';
 import type { Converter, CollectionEntry } from '@dualmark/converters';
 import type { H3Event } from 'h3';
@@ -29,8 +29,8 @@ export function makeCollectionMiddleware<TEntry = CollectionEntry<unknown>>(
     if (!isListing && !isUnderBase) return;
 
     const isMd = path.endsWith('.md');
-    const accept = event.req.headers.get('accept') ?? '';
-    const ua = event.req.headers.get('user-agent') ?? '';
+    const accept = getRequestHeader(event, 'accept') ?? '';
+    const ua = getRequestHeader(event, 'user-agent') ?? '';
     const botInfo = detectAIBot(ua);
     const format = negotiateFormat(accept);
 
