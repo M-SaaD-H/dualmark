@@ -29,8 +29,9 @@ export function makeCollectionMiddleware<TEntry = CollectionEntry<unknown>>(
     if (!isListing && !isUnderBase) return;
 
     const isMd = path.endsWith('.md');
-    const accept = event.req.headers.get('accept') ?? '';
-    const ua = event.req.headers.get('user-agent') ?? '';
+    // h3 v2: event.req is a Web Fetch Request (headers.get); h3 v1: event.node.req.headers is a plain object
+    const accept = (event.req?.headers?.get?.('accept') ?? (event as any).node?.req?.headers?.['accept']) || '';
+    const ua = (event.req?.headers?.get?.('user-agent') ?? (event as any).node?.req?.headers?.['user-agent']) || '';
     const botInfo = detectAIBot(ua);
     const format = negotiateFormat(accept);
 

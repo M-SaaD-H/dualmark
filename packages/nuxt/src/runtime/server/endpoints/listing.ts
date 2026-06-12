@@ -6,7 +6,7 @@ import {
 } from "@dualmark/core";
 import type { CollectionEntry } from "@dualmark/converters";
 
-import { defineEventHandler, type H3Event, type EventHandler } from "h3";
+import { defineEventHandler, type H3Event } from "h3";
 
 export interface ListingEndpointArgs<TEntry extends CollectionEntry<unknown>> {
   collectionName: string;
