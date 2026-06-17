@@ -66,7 +66,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         c.converter as string,
         c.listingMetadata?.title ?? collectionName,
         c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.'),
-        c.compareOptions
+        c.compareOptions,
+        c.filter?.toString(),
+        c.sort?.toString()
       );
 
       const middlewareFile = addTemplate({
@@ -89,7 +91,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
           collectionName,
           '/' + route,
           c.listingMetadata?.title ?? collectionName,
-          c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.')
+          c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.'),
+          c.filter?.toString(),
+          c.sort?.toString()
         );
         const listingFile = addTemplate({
           filename: `dualmark/collection-${collectionName}-listing.ts`,
@@ -221,7 +225,9 @@ function getMiddlewareCode(
   converterName: string,
   listingTitle: string,
   listingDescription: string,
-  compareOptions?: { ourBrandColumn?: string }
+  compareOptions?: { ourBrandColumn?: string },
+  filterStr?: string,
+  sortStr?: string
 ) {
   return `
 import { defineEventHandler } from 'h3';
@@ -235,6 +241,8 @@ const CONVERTER_NAME = ${JSON.stringify(converterName)};
 const LISTING_TITLE = ${JSON.stringify(listingTitle)};
 const LISTING_DESCRIPTION = ${JSON.stringify(listingDescription)};
 const COMPARE_OPTIONS = ${JSON.stringify(compareOptions)};
+const FILTER = ${filterStr ?? 'undefined'};
+const SORT = ${sortStr ?? 'undefined'};
 
 export default defineEventHandler(async (event) => {
   const path = (event.path ?? '/').split('?')[0];
@@ -270,7 +278,8 @@ export default defineEventHandler(async (event) => {
 
   // Listing: /blog.md
   if (isListing) {
-    const entries = await getCollection(event, COLLECTION_NAME);
+    let entries = await getCollection(event, COLLECTION_NAME, FILTER);
+    if (SORT) entries = [...entries].sort(SORT);
     const items = entries.map(entry => {
       const data = entry.data;
       return {
@@ -302,7 +311,7 @@ export default defineEventHandler(async (event) => {
     compareOptions: COMPARE_OPTIONS,
   });
 
-  const entries = await getCollection(event, COLLECTION_NAME);
+  const entries = await getCollection(event, COLLECTION_NAME, FILTER);
   const entry = entries.find(e => e.id === rawSlug);
   if (!entry) return new Response('Not Found', { status: 404 });
 
@@ -318,7 +327,9 @@ function getListingCode(
   collectionName: string,
   basePath: string,
   listingTitle: string,
-  listingDescription: string
+  listingDescription: string,
+  filterStr?: string,
+  sortStr?: string
 ) {
   return `
 import { makeListingEndpoint } from ${JSON.stringify(resolverPath)};
@@ -332,6 +343,8 @@ export default makeListingEndpoint({
   title: ${JSON.stringify(listingTitle)},
   description: ${JSON.stringify(listingDescription)},
   getCollection,
+  filter: ${filterStr ?? 'undefined'},
+  sort: ${sortStr ?? 'undefined'},
   responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex },
 });
 `;
