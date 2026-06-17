@@ -2,7 +2,6 @@ import type { Converter, CollectionEntry } from "@dualmark/converters";
 import type { LlmsTxtSection } from "@dualmark/core";
 import type {} from '@nuxt/schema';
 
-export type SlugStrategy = "catch-all" | "single";
 
 declare module '@nuxt/schema' {
   interface NuxtConfig {
@@ -19,7 +18,6 @@ export interface CollectionConfig<TEntry = CollectionEntry<unknown>> {
     ourBrandColumn?: string;
   };
   route?: string;
-  slugStrategy?: SlugStrategy;
   filter?: (entry: TEntry) => boolean;
   sort?: (a: TEntry, b: TEntry) => number;
   listingMetadata?: {

@@ -24,11 +24,11 @@ export default defineNuxtConfig({
       blog: {
         converter: "blog",
         route: "blog",
-        slugStrategy: "catch-all",
+        filter: (entry) => entry.data.published !== false,
+        sort: (a, b) => b.data.publishedDate - a.data.publishedDate,
       },
       glossary: {
         converter: "glossary",
-        slugStrategy: "single",
       },
     },
 
