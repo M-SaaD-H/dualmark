@@ -1,5 +1,6 @@
 import type { Converter, CollectionEntry } from "@dualmark/converters";
-import type { LlmsTxtSection } from "@dualmark/core";
+import type { LlmsTxtSection, TokenEstimator } from "@dualmark/core";
+export type { TokenEstimator } from "@dualmark/core";
 import type {} from '@nuxt/schema';
 
 
@@ -56,6 +57,14 @@ export interface DualmarkNuxtConfig {
     cacheControl?: string;
     noindex?: boolean;
   };
+  /**
+   * Custom token estimator for the `X-Markdown-Tokens` header. Overrides the
+   * default whitespace-word counter. Pass a function, or a module path
+   * (e.g. `"./src/aeo-tokenizer.ts"`) for tokenizers that close over external
+   * state like js-tiktoken (inline functions are serialized via `.toString()`
+   * and cannot capture closures or imports).
+   */
+  tokenizer?: TokenEstimator | string;
 }
 
 export interface ResolvedDualmarkConfig extends DualmarkNuxtConfig {

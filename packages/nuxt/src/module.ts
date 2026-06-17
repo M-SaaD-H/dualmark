@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { defineNuxtModule, createResolver, addServerHandler, addServerPlugin, addTemplate } from '@nuxt/kit';
 import { resolveConfig, DualmarkConfigError } from './config-validation.js';
 import type { DualmarkNuxtConfig, ResolvedDualmarkConfig } from './types.js';
@@ -36,6 +37,16 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
     const routesInjected: string[] = [];
     const prerenderRoutes: string[] = [];
 
+    // Custom token estimator: either an inline function serialized via
+    // `.toString()`, or a module path the generated code imports (the only
+    // way to use a tokenizer that closes over state/deps, e.g. js-tiktoken).
+    // `decl` is prepended to each generated file; `ref` is woven into the
+    // markdown responseOptions (falls back to the default estimator when unset).
+    const { decl: tokenizerDecl, ref: tokenizerRef } = getTokenizerDecl(
+      resolved.tokenizer,
+      nuxt.options.rootDir
+    );
+
     // Shared getCollection code (embedded in each generated file)
     const contentServerAlias = nuxt.options.alias['#content/server'] || '#content/server';
     const collectionCode = getCollectionCode(contentServerAlias);
@@ -68,7 +79,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.'),
         c.compareOptions,
         c.filter?.toString(),
-        c.sort?.toString()
+        c.sort?.toString(),
+        tokenizerDecl,
+        tokenizerRef
       );
 
       const middlewareFile = addTemplate({
@@ -93,7 +106,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
           c.listingMetadata?.title ?? collectionName,
           c.listingMetadata?.description ?? ('All ' + collectionName + ' entries.'),
           c.filter?.toString(),
-          c.sort?.toString()
+          c.sort?.toString(),
+          tokenizerDecl,
+          tokenizerRef
         );
         const listingFile = addTemplate({
           filename: `dualmark/collection-${collectionName}-listing.ts`,
@@ -121,7 +136,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
       const source = getStaticPageCode(
         resolver.resolve('./runtime/server/endpoints/static'),
         dualmarkConfigStr,
-        `./static-${i}-${safe}-render`
+        `./static-${i}-${safe}-render`,
+        tokenizerDecl,
+        tokenizerRef
       );
       const mdPattern = sp.pattern === '/' ? '/index.md' : sp.pattern.replace(/\/$/, '') + '.md';
       const file = addTemplate({
@@ -153,7 +170,9 @@ export default defineNuxtModule<DualmarkNuxtConfig>({
         resolver.resolve('./runtime/server/endpoints/parameterized'),
         dualmarkConfigStr,
         `./param-${i}-${safe}-render`,
-        `./param-${i}-${safe}-paths`
+        `./param-${i}-${safe}-paths`,
+        tokenizerDecl,
+        tokenizerRef
       );
       const pattern = pr.pattern.startsWith('/') ? pr.pattern + '.md' : `/${pr.pattern}.md`;
       const file = addTemplate({
@@ -227,14 +246,16 @@ function getMiddlewareCode(
   listingDescription: string,
   compareOptions?: { ourBrandColumn?: string },
   filterStr?: string,
-  sortStr?: string
+  sortStr?: string,
+  tokenizerDecl = '',
+  tokenizerRef = 'undefined'
 ) {
   return `
 import { defineEventHandler } from 'h3';
 import { negotiateFormat, detectAIBot, toMarkdownPath, markdownResponse, listingToMarkdown } from '@dualmark/core';
 import { resolveBuiltInConverter } from ${JSON.stringify(resolverPath)};
 ${collectionCode}
-const dualmarkConfig = ${dualmarkConfigStr};
+${tokenizerDecl}const dualmarkConfig = ${dualmarkConfigStr};
 const COLLECTION_NAME = ${JSON.stringify(collectionName)};
 const BASE_PATH = ${JSON.stringify(basePath)};
 const CONVERTER_NAME = ${JSON.stringify(converterName)};
@@ -274,6 +295,7 @@ export default defineEventHandler(async (event) => {
   const responseOpts = {
     cacheControl: dualmarkConfig.cacheControl,
     noindex: dualmarkConfig.noindex,
+    tokenizer: ${tokenizerRef},
   };
 
   // Listing: /blog.md
@@ -329,12 +351,14 @@ function getListingCode(
   listingTitle: string,
   listingDescription: string,
   filterStr?: string,
-  sortStr?: string
+  sortStr?: string,
+  tokenizerDecl = '',
+  tokenizerRef = 'undefined'
 ) {
   return `
 import { makeListingEndpoint } from ${JSON.stringify(resolverPath)};
 ${collectionCode}
-const dualmarkConfig = ${dualmarkConfigStr};
+${tokenizerDecl}const dualmarkConfig = ${dualmarkConfigStr};
 
 export default makeListingEndpoint({
   collectionName: ${JSON.stringify(collectionName)},
@@ -345,7 +369,7 @@ export default makeListingEndpoint({
   getCollection,
   filter: ${filterStr ?? 'undefined'},
   sort: ${sortStr ?? 'undefined'},
-  responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex },
+  responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex, tokenizer: ${tokenizerRef} },
 });
 `;
 }
@@ -353,16 +377,18 @@ export default makeListingEndpoint({
 function getStaticPageCode(
   resolverPath: string,
   dualmarkConfigStr: string,
-  renderPath: string
+  renderPath: string,
+  tokenizerDecl = '',
+  tokenizerRef = 'undefined'
 ) {
   return `
 import { makeStaticEndpoint } from ${JSON.stringify(resolverPath)};
-const dualmarkConfig = ${dualmarkConfigStr};
+${tokenizerDecl}const dualmarkConfig = ${dualmarkConfigStr};
 import render from "${renderPath}";
 
 export default makeStaticEndpoint({
   render,
-  responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex },
+  responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex, tokenizer: ${tokenizerRef} },
 });
 `;
 }
@@ -371,18 +397,20 @@ function getParameterizedRouteCode(
   resolverPath: string,
   dualmarkConfigStr: string,
   renderPath: string,
-  pathsPath: string
+  pathsPath: string,
+  tokenizerDecl = '',
+  tokenizerRef = 'undefined'
 ) {
   return `
 import { makeParameterizedEndpoint } from ${JSON.stringify(resolverPath)};
-const dualmarkConfig = ${dualmarkConfigStr};
+${tokenizerDecl}const dualmarkConfig = ${dualmarkConfigStr};
 import render from "${renderPath}";
 import getStaticPaths from "${pathsPath}";
 
 export default makeParameterizedEndpoint({
   getStaticPaths: () => getStaticPaths(),
   render,
-  responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex },
+  responseOptions: { cacheControl: dualmarkConfig.cacheControl, noindex: dualmarkConfig.noindex, tokenizer: ${tokenizerRef} },
 });
 `;
 }
@@ -406,4 +434,24 @@ export default makeLlmsTxtEndpoint({
 
 function getExportDefaultCode(content: string) {
   return `export default ${content};\n`;
+}
+
+/**
+ * Build the codegen pieces for a custom tokenizer.
+ * - `decl`: a top-level statement defining `__dualmarkTokenizer` (an `import`
+ *   for a module path, or an inline `const` serialized via `.toString()`),
+ *   or '' when no tokenizer is configured.
+ * - `ref`: the expression to pass as `responseOptions.tokenizer`
+ *   (`__dualmarkTokenizer`, or `undefined` to fall back to the default estimator).
+ */
+function getTokenizerDecl(
+  tokenizer: ResolvedDualmarkConfig['tokenizer'],
+  rootDir: string
+): { decl: string; ref: string } {
+  if (!tokenizer) return { decl: '', ref: 'undefined' };
+  if (typeof tokenizer === 'string') {
+    const abs = resolve(rootDir, tokenizer);
+    return { decl: `import __dualmarkTokenizer from ${JSON.stringify(abs)};\n`, ref: '__dualmarkTokenizer' };
+  }
+  return { decl: `const __dualmarkTokenizer = ${tokenizer.toString()};\n`, ref: '__dualmarkTokenizer' };
 }

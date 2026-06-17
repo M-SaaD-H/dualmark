@@ -95,6 +95,48 @@ describe("resolveConfig", () => {
       })
     ).toThrow(DualmarkConfigError);
   });
+
+  it("accepts a function tokenizer", () => {
+    const cfg = resolveConfig({
+      siteUrl: "https://example.com",
+      tokenizer: (t) => t.length,
+    });
+    expect(typeof cfg.tokenizer).toBe("function");
+  });
+
+  it("accepts a ./ relative tokenizer module path", () => {
+    const cfg = resolveConfig({
+      siteUrl: "https://example.com",
+      tokenizer: "./src/aeo-tokenizer.ts",
+    });
+    expect(cfg.tokenizer).toBe("./src/aeo-tokenizer.ts");
+  });
+
+  it("accepts a ../ relative tokenizer module path", () => {
+    const cfg = resolveConfig({
+      siteUrl: "https://example.com",
+      tokenizer: "../shared/tokenizer.ts",
+    });
+    expect(cfg.tokenizer).toBe("../shared/tokenizer.ts");
+  });
+
+  it("throws when tokenizer module path is empty", () => {
+    expect(() =>
+      resolveConfig({ siteUrl: "https://example.com", tokenizer: "" })
+    ).toThrow(/must not be empty/);
+  });
+
+  it("throws when tokenizer module path is not relative (absolute)", () => {
+    expect(() =>
+      resolveConfig({ siteUrl: "https://example.com", tokenizer: "/abs/tokenizer.ts" })
+    ).toThrow(/must be a relative path/);
+  });
+
+  it("throws when tokenizer module path is a bare specifier", () => {
+    expect(() =>
+      resolveConfig({ siteUrl: "https://example.com", tokenizer: "my-tokenizer" })
+    ).toThrow(/must be a relative path/);
+  });
 });
 
 describe("resolveBuiltInConverter", () => {

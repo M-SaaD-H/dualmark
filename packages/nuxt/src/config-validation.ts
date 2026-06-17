@@ -58,6 +58,17 @@ export function resolveConfig(input: DualmarkNuxtConfig): ResolvedDualmarkConfig
     }
   }
 
+  if (typeof input.tokenizer === "string") {
+    if (!input.tokenizer) {
+      throw new DualmarkConfigError("Dualmark config: tokenizer module path must not be empty");
+    }
+    if (!input.tokenizer.startsWith("./") && !input.tokenizer.startsWith("../")) {
+      throw new DualmarkConfigError(
+        `Dualmark config: tokenizer module path must be a relative path starting with './' or '../' (got '${input.tokenizer}')`,
+      );
+    }
+  }
+
   return {
     siteUrl: input.siteUrl,
     collections,
@@ -71,5 +82,6 @@ export function resolveConfig(input: DualmarkNuxtConfig): ResolvedDualmarkConfig
       cacheControl: input.headers?.cacheControl ?? "public, max-age=3600",
       noindex: input.headers?.noindex !== false,
     },
+    tokenizer: input.tokenizer,
   };
 }
